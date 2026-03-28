@@ -1,69 +1,137 @@
-def calculate_npk_rank(data):
-    OM = data["chemical"]["organic_matter_pct"]
-    clay = data["physical"]["clay_pct"]
-    cec = data["chemical"]["cec_cmol_kg"]
-    pH = data["chemical"]["ph_h2o"]
-    N = data["chemical"]["nitrogen_g_kg"]
-    
-    # Nitrogen rank
-    if N < 1.0:
-        N_rank = "Low"
-    elif N <= 2.5:
-        N_rank = "Medium"
-    else:
-        N_rank = "High"
-    
-    # Phosphorus rank
-    P_score = 0.4*OM + 0.3*clay + 0.3*pH*10
-    print(f"P_Score:{P_score}")
-    if P_score < 3.5:
-        P_rank = "Low"
-    elif P_score <= 6 and P_score >=3.5:
-        P_rank = "Medium"
-    else:
-        P_rank = "High"
-    
-    # Potassium rank
-    K_score = 0.4*cec + 0.4*clay + 0.2*OM*10
-    print(f"K_Score:{K_score}")
-    if K_score < 3.5:
-        K_rank = "Low"
-    elif K_score <= 6 and K_score >=3.5:
-        K_rank = "Medium"
-    else:
-        K_rank = "High"
-    
-    return {"N": N_rank, "P": P_rank, "K": K_rank}
 
-# Example usage
-data ={
-    "location": {
-        "lat": 16.664462464531987,
-        "lon": 94.91565733190768
-    },
-    "soil_type": {
-        "texture_class": "Clay Loam",
-        "fao_classification": "Ferralsols"
-    },
-    "physical": {
-        "sand_pct": 24.18,
-        "silt_pct": 40.1,
-        "clay_pct": 35.7,
-        "bulk_density_g_cm3": 1.26
-    },
-    "chemical": {
-        "ph_h2o": 6.62,
-        "organic_matter_pct": 6.65,
-        "nitrogen_g_kg": 2.04,
-        "cec_cmol_kg": 26.95
-    },
-    "water": {
-        "capacity_field_vol_pct": 34.27,
-        "capacity_wilt_vol_pct": 19.95
-    },
-    "_meta": {
-        "latency_seconds": 27.247
+import requests
+
+def get_universal_npk_ranks(data):
+    # 1. Dataset Ranges (Defined by your dataset)
+    N_LIMITS = [60, 90]   # Low < 60, Med 60-90, High > 90
+    P_LIMITS = [20, 50]   # Low < 20, Med 20-50, High > 50
+    K_LIMITS = [80, 150]  # Low < 80, Med 80-150, High > 150
+
+    # 2. Extract Values from API Data
+    fao_type = data["soil_type"]["fao_classification"]
+    texture = data["soil_type"]["texture_class"] # New input
+    ph = data["chemical"]["ph_h2o"]
+    n_g_kg = data["chemical"]["nitrogen_g_kg"]
+
+    # 3. Calculate N Rank (Direct from data)
+    # Total Nitrogen (g/kg) to Available Estimate conversion
+    n_score = n_g_kg * 50
+    if n_score < N_LIMITS[0]: n_rank = "LOW"
+    elif n_score <= N_LIMITS[1]: n_rank = "MEDIUM"
+    else: n_rank = "HIGH"
+
+    # 4. Texture Modifier (Nutrient Holding Capacity)
+    # Maps all 12 USDA texture classes to a retention multiplier
+    texture_modifiers = {
+        # Sandy (Coarse) - Low retention
+        "Sand": 0.65, "Loamy Sand": 0.75, "Sandy Loam": 0.85,
+        # Loamy (Medium) - Standard retention
+        "Loam": 1.0, "Silt Loam": 1.0, "Silt": 1.0,
+        # Clay-Loamy (Fine) - High retention
+        "Clay Loam": 1.1, "Silty Clay Loam": 1.1, "Sandy Clay Loam": 1.1,
+        # Clayey (Heavy) - Very high retention
+        "Clay": 1.2, "Silty Clay": 1.2, "Sandy Clay": 1.2
     }
-}
+    # Default to 1.0 if texture is missing or unknown
+    t_factor = texture_modifiers.get(texture, 1.0)
 
-print(calculate_npk_rank(data))
+    # 5. Map P & K Base Potential by Soil Group
+    soil_potential = {
+        "Fluvisols": {"p": 0.60, "k": 0.60}, # River Delta (Rich)
+        "Gleysols":  {"p": 0.50, "k": 0.55}, # Wetland
+        "Ferralsols": {"p": 0.15, "k": 0.40}, # Red Upland (P-Poor)
+        "Acrisols":   {"p": 0.18, "k": 0.35}, # Acidic Hills
+        "Nitisols":   {"p": 0.40, "k": 0.50}, # Fertile Red Clay
+        "Cambisols":  {"p": 0.45, "k": 0.45}  # Young Brown Soil
+    }
+    base = soil_potential.get(fao_type, {"p": 0.35, "k": 0.35})
+
+    # 6. pH Adjustment Factor (Availability)
+    if 6.0 <= ph <= 7.2:
+        ph_factor = 1.2 # Optimal (Neutral)
+    elif ph < 5.5:
+        ph_factor = 0.7 # Acidic lock (Phosphorus is very low here)
+    else:
+        ph_factor = 0.9 # Alkaline lock
+
+    # 7. Final Multi-Factor Calculation
+    # We multiply: (Max Range * Soil Type Potential * Texture Holding * pH Availability)
+    calc_p = (145 * base["p"] * t_factor) * ph_factor
+    calc_k = (205 * base["k"] * t_factor) * ph_factor
+
+    # 8. Final Ranking based on your dataset thresholds
+    p_rank = "LOW" if calc_p < P_LIMITS[0] else ("MEDIUM" if calc_p <= P_LIMITS[1] else "HIGH")
+    k_rank = "LOW" if calc_k < K_LIMITS[0] else ("MEDIUM" if calc_k <= K_LIMITS[1] else "HIGH")
+
+    return {
+        "N_RANK": n_rank,
+        "P_RANK": p_rank,
+        "K_RANK": k_rank
+    }
+
+def get_advanced_npk_ranks(data):
+    # 1. Dataset Constants
+    P_MAX, K_MAX = 145, 205
+    
+    # 2. Extract Data
+    fao_type = data["soil_type"]["fao_classification"]
+    texture = data["soil_type"]["texture_class"]
+    ph = data["chemical"]["ph_h2o"]
+    n_g_kg = data["chemical"]["nitrogen_g_kg"]
+
+    # 3. Nitrogen Rank (Direct calculation remains the same)
+    n_score = n_g_kg * 50
+    n_rank = "LOW" if n_score < 60 else ("MEDIUM" if n_score <= 90 else "HIGH")
+
+    # 4. Texture Modifier Map (The 12 Classes)
+    texture_modifiers = {
+        "Sand": 0.6, "Loamy Sand": 0.7, "Sandy Loam": 0.85,
+        "Loam": 1.0, "Silt Loam": 1.0, "Silt": 1.0,
+        "Clay Loam": 1.1, "Silty Clay Loam": 1.1, "Sandy Clay Loam": 1.1,
+        "Clay": 1.2, "Silty Clay": 1.2, "Sandy Clay": 1.2
+    }
+    t_factor = texture_modifiers.get(texture, 1.0)
+
+    # 5. Base Potential by FAO Type
+    soil_potential = {
+        "Fluvisols": {"p": 0.60, "k": 0.60}, # River Delta
+        "Gleysols":  {"p": 0.50, "k": 0.55}, # Wetland
+        "Ferralsols": {"p": 0.15, "k": 0.40}, # Red Upland
+        "Acrisols":   {"p": 0.18, "k": 0.35}, # Acidic Hills
+        "Nitisols":   {"p": 0.40, "k": 0.50}, # Fertile Red Clay
+        "Cambisols":  {"p": 0.45, "k": 0.45}  # Young Brown Soil
+    }
+    base = soil_potential.get(fao_type, {"p": 0.35, "k": 0.35})
+
+    # 6. pH Factor
+    ph_factor = 1.2 if 6.0 <= ph <= 7.2 else 0.8
+
+    # 7. Final Multi-Factor Calculation
+    # Formula: (Max * BasePotential * TextureFactor * pHFactor)
+    calc_p = (P_MAX * base["p"] * t_factor) * ph_factor
+    calc_k = (K_MAX * base["k"] * t_factor) * ph_factor
+
+    # 8. Rank Assignment
+    p_rank = "LOW" if calc_p < 20 else ("MEDIUM" if calc_p <= 50 else "HIGH")
+    k_rank = "LOW" if calc_k < 80 else ("MEDIUM" if calc_k <= 150 else "HIGH")
+
+    return {"N": n_rank, "P": p_rank, "K": k_rank}
+
+# Using your original data (Clay Loam Ferralsols)
+# print(get_advanced_npk_ranks(data))
+
+def fetch_api_data(lat,lon):
+    api=f"https://www.kaegro.com/farms/api/soil?lat={lat}&lon={lon}"
+    try:
+        response = requests.get(api)
+        response.raise_for_status()  # raise error if status code != 200
+        return response.json()       # parse and return JSON data
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.ConnectionError as conn_err:
+        print(f"Connection error occurred: {conn_err}")
+    except requests.exceptions.Timeout as timeout_err:
+        print(f"Timeout error occurred: {timeout_err}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"Request error occurred: {req_err}")
+    return None

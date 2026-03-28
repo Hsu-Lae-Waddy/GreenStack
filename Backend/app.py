@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
+from functions import get_universal_npk_ranks,fetch_api_data
 import os,json
 app = Flask(__name__)
 
@@ -56,6 +57,13 @@ def update_data(id):
 def delete_data(id):
     collection.document(id).delete()
     return jsonify({"message": "Deleted"})
+
+
+@app.route('/npk-Rank',methods=['GET'])
+def getNpkRank():
+    data=fetch_api_data(16.60001638075996, 97.34907779784488)
+    res=get_universal_npk_ranks(data)
+    return jsonify({"message":"Rank Got","response":res})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
