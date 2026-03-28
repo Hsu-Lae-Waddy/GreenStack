@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import firebase_admin
+from groq import Groq
 from firebase_admin import credentials, firestore
-from functions import get_universal_npk_ranks,fetch_api_data
+from functions import get_universal_npk_ranks,fetch_api_data,get_weather_daily
 import os,json
 app = Flask(__name__)
 
@@ -12,6 +13,8 @@ app = Flask(__name__)
 # for production
 # firebase_key = os.environ.get("FIREBASE_KEY")
 # firebase_dict = json.loads(firebase_key)
+# SECRET_KEY = os.environ.get("GROQ_API_KEY")
+SECRET_KEY="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"
 
 firebase_dict = "./firebase-auth.json"
 cred = credentials.Certificate(firebase_dict)
@@ -64,6 +67,54 @@ def getNpkRank():
     data=fetch_api_data(16.60001638075996, 97.34907779784488)
     res=get_universal_npk_ranks(data)
     return jsonify({"message":"Rank Got","response":res})
+
+
+@app.route("/get7DaysWeather",methods=["GET"])
+def getWeather():
+    data=get_weather_daily(16.60001638075996, 97.34907779784488)
+    return jsonify({"message":"Weather Got","response":data})
+
+
+# 🤖 Chatbot (Groq)
+@app.route("/chatBot", methods=["POST"])
+def chat():
+    client = Groq(api_key=SECRET_KEY)
+    data = request.get_json()
+    message = data.get("message")
+    system_prompt = (
+    "You are a climate-smart farming assistant for Myanmar farmers. "
+    "Guidelines: Use formal, a little long (not boring long),perfect  and polite Burmese (ဗမာစာ) answers. "
+    "Keep responses concise, practical, and culturally relevant. "
+    "\n\nExample 1:"
+    "\nUser: စပါးစိုက်ပျိုးဖို့ အကောင်းဆုံးအချိန်က ဘယ်တော့လဲ?"
+    "\nAssistant: မိုးစပါးအတွက် မေလနှောင်းပိုင်းမှ ဇွန်လအတွင်း စိုက်ပျိုးခြင်းသည် အကောင်းဆုံးဖြစ်ပါသည်။ "
+    "ရာသီဥတုပြောင်းလဲမှုကြောင့် မိုးရွာသွန်းမှုကို သတိပြုရန် လိုအပ်ပါသည်။"
+)
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": message
+                }
+            ]
+        )
+
+        return jsonify({
+            "reply": response.choices[0].message.content
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

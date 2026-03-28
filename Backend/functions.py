@@ -135,3 +135,55 @@ def fetch_api_data(lat,lon):
     except requests.exceptions.RequestException as req_err:
         print(f"Request error occurred: {req_err}")
     return None
+
+
+
+def get_weather_daily(lat, lon):
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "daily": "temperature_2m_max,temperature_2m_min,uv_index_max,windspeed_10m_max,winddirection_10m_dominant,precipitation_sum",
+        "hourly": "relativehumidity_2m,surface_pressure",
+        "timezone": "Asia/Yangon"
+    }
+
+    res = requests.get(url, params=params, timeout=10)
+    res.raise_for_status()
+    data = res.json()
+
+    forecast = []
+
+    for i, date in enumerate(data["daily"]["time"]):
+        humidity = []
+        pressure = []
+
+        for j, t in enumerate(data["hourly"]["time"]):
+            if t.startswith(date):
+                humidity.append(data["hourly"]["relativehumidity_2m"][j])
+                pressure.append(data["hourly"]["surface_pressure"][j])
+
+        forecast.append({
+            "date": date,
+            "temp_max": data["daily"]["temperature_2m_max"][i],
+            "temp_min": data["daily"]["temperature_2m_min"][i],
+            "humidity": round(sum(humidity)/len(humidity), 1) if humidity else None,
+            "pressure": round(sum(pressure)/len(pressure), 1) if pressure else None,
+            "wind_speed": data["daily"]["windspeed_10m_max"][i],
+            "wind_direction": data["daily"]["winddirection_10m_dominant"][i],
+            "uv_index": data["daily"]["uv_index_max"][i],
+            "rainfall": data["daily"]["precipitation_sum"][i]
+        })
+
+    return {
+        "units": {
+            "temperature": "°C",
+            "humidity": "%",
+            "pressure": "hPa",
+            "wind_speed": "km/h",
+            "wind_direction": "°",
+            "uv_index": "index",
+            "rainfall": "mm"
+        },
+        "forecast": forecast
+    }
