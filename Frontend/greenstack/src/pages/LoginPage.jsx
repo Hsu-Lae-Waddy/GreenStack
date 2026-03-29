@@ -96,7 +96,7 @@ const   LoginPage = () => {
           </div>
         </div>
 
-{/*      language switch buttons */}
+          {/* language switch buttons */}
 
          <div className="mt-6 flex justify-center gap-4">
             <button onClick={() => setLang('en')}  className="text-xs font-bold text-[#3F865F]/60 hover:text-[#3F865F]">English</button>
