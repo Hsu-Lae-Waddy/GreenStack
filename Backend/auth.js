@@ -5,18 +5,18 @@ async function signup(username, phone, password) {
   const res = await fetch("http://127.0.0.1:5000/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, phone, password })
+    body: JSON.stringify({ username, phone })
   });
   const data = await res.json();
   console.log("Signup:", data);
 }
 
 // Login
-async function login(phone, password) {
+async function login(username, phone) {
   const res = await fetch("http://127.0.0.1:8080/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ phone, password })
+    body: JSON.stringify({ username, phone })
   });
   const data = await res.json();
   console.log("Login:", data);

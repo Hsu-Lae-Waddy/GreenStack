@@ -3,8 +3,12 @@ from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore, auth
 import os,json
-from werkzeug.security import generate_password_hash, check_password_hash
+import jwt
+import datetime
+
+
 app = Flask(__name__)
+SECRET_KEY = "c2f9a7d4e8b1c3f6a9d0e5f7b2c4a8d1e6f9b3c7a2d5e8f1"
 
 # Firebase init
 # Load from env
@@ -65,9 +69,9 @@ def signup():
     data = request.json
     username = data.get("username")
     phone = data.get("phone")
-    password = data.get("password")
+    
 
-    if not username or not phone or not password:
+    if not username or not phone:
         return jsonify({"error": "Missing fields"}), 400
 
     # Check if phone or username already exists
@@ -79,20 +83,24 @@ def signup():
     if any(existing_usernames):
         return jsonify({"error": "Username already taken"}), 409
 
-    # Hash password before saving
-    hashed_password = generate_password_hash(password)
+    # create JWT
+    token = jwt.encode({
+        "user": username,
+        "phone": phone,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+    }, SECRET_KEY, algorithm="HS256")
 
     # Add new user
     doc_ref = collection.add({
         "username": username,
         "phone": phone,
-        "password": hashed_password,
         "created_at": firestore.SERVER_TIMESTAMP
     })
 
     return jsonify({
         "message": "User registered",
-        "id": doc_ref[1].id
+        "id": doc_ref[1].id,
+        "token": token
     }), 201
 
 
@@ -100,10 +108,10 @@ def signup():
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
+    username = data.get("username")
     phone = data.get("phone")
-    password = data.get("password")
 
-    if not phone or not password:
+    if not phone:
         return jsonify({"error": "Missing fields"}), 400
 
     # Check if phone exists
@@ -115,13 +123,14 @@ def login():
 
     user_data = user_doc.to_dict()
 
-    # Verify password
-    if not check_password_hash(user_data["password"], password):
-        return jsonify({"error": "Invalid password"}), 401
+    # create JWT
+    token = jwt.encode({
+        "user": username,
+        "phone": phone,
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+    }, SECRET_KEY, algorithm="HS256")
 
-    user_data["id"] = user_doc.id
-    # Remove password from response
-    user_data.pop("password")
+    
 
     return jsonify({
         "message": "Login successful",
