@@ -99,6 +99,29 @@ profile: {
         others: "အခြား"
       }
     },
+
+    navbar: {
+      home: "ပင်မစာမျက်နှာ",
+      marketPrice: "ဈေးကွက်ပေါက်ဈေး",
+      cropTips: "စိုက်ပျိုးရေးအကြံပြုချက်",
+      profile: "ပရိုဖိုင်",
+      feedback: "အကြံပြုချက်",
+      assistant: {
+        title: "Green အကူအညီပေးသူ",
+        status: "ကူညီရန်အသင့်ရှိသည်",
+        welcome: "မင်္ဂလာပါ။ Green Assistant မှ ကြိုဆိုပါတယ်။ စိုက်ပျိုးရေးနှင့်ပတ်သက်သည်များကို မေးမြန်းနိုင်ပါသည်။",
+        placeholder: "မေးခွန်းတစ်ခုခု မေးမြန်းပါ...",
+      },
+      tips: {
+        title: "သီးနှံအကြံပြုချက်များ",
+        subtitle: "မြေအမျိုးအစားပေါ် အခြေခံသည်",
+        question: "သင့်စိုက်ခင်းတွင် မည်သည့်မြေအမျိုးအစားရှိသနည်း။",
+        getAdvice: "အကြံပြုချက်ရယူရန်",
+        resultsTitle: "အကောင်းဆုံး စိုက်ပျိုးသင့်သည့် သီးနှံ ၃ မျိုး",
+        score: "ကိုက်ညီမှု ရမှတ်",
+        footerNote: "ဤအကြံပြုချက်များသည် သင့်ဒေသ၏ မြေဆီလွှာဓာတ်၊ လက်ရှိမိုးလေဝသနှင့် မိုးရေချိန်မှတ်တမ်းများပေါ်တွင် အခြေခံထားပါသည်။"
+      }
+    },
   //Nav bar
   home: "ပင်မစာမျက်နှာ",
     marketPrice: "စျေးနှုန်း",
@@ -343,6 +366,29 @@ profile: {
       headlineSub: "True Value.",
       description: "Don't guess the price. Get instant updates for crops in your specific township. We connect you directly with local brokers and current export rates.",
       buttonText: "Check Local Prices"
+    },
+
+    navbar: {
+      home: "Home",
+      marketPrice: "Market Price",
+      cropTips: "Crop Tips",
+      profile: "Profile",
+      feedback: "Feedback",
+      assistant: {
+        title: "Green Assistant",
+        status: "Ready to Help",
+        welcome: "Hello! Welcome to Green Assistant. You can ask me anything about farming.",
+        placeholder: "Ask a question...",
+      },
+      tips: {
+        title: "Crop Recommendations",
+        subtitle: "Based on Soil Type",
+        question: "What type of soil do you have in your field?",
+        getAdvice: "Get Advice",
+        resultsTitle: "Top 3 Crop Recommendations",
+        score: "Suitability Score",
+        footerNote: "Recommendations based on your local soil NPK, real-time weather, and historical rainfall data."
+      }
     },
     // Feedback
     feedbackSection: {
