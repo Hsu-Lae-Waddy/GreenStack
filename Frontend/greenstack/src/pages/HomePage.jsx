@@ -1,5 +1,5 @@
 
-import React,{useState} from "react";
+import React ,{ useState,useEffect } from "react";
 import MarketPrice from "./MarketPrice";
 import { useLanguage } from '../context/LanguageContext'; 
 
@@ -23,8 +23,80 @@ import translations from './translations';
 
 const HomePage = () => {
 
+
   const { lang } = useLanguage(); 
   
+  const route="http://127.0.0.1:8080"
+  const token=localStorage.getItem("token")
+  
+
+  // 1. Initialize with an empty array so .map() doesn't fail on first render
+const [farmer, setFarmer] = useState({ weeklyForecast: [] });
+
+const userLocation = async (latitude, longitude) => {
+  const token = localStorage.getItem("token");
+  try {
+    const response = await fetch(`${route}/get7DaysWeather`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      },
+      body: JSON.stringify({ latitude, longitude })
+    });
+
+    const data = await response.json();
+    
+    if (data.response?.forecast) {
+      const dynamicForecast = data.response.forecast.map((item, index) => ({
+        day: index === 0 ? "Today" : new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
+        temp: Math.round(item.temp_max).toString(),
+        humidity:Math.round(item.humidity).toString(),
+        rainFall:(item.rainfall).toString(),
+        pressure:item.pressure,
+        uv:item.uv_index,
+        windDir:item.wind_direction,
+        wind_speed:item.wind_speed,
+        icon: item.rainfall > 0.1 ? <CloudRain className="text-blue-300" /> : <Sun className="text-[#A3C475]" />
+      }));
+
+      setFarmer((prevFarmer) => ({
+        ...prevFarmer,
+        location: data.response.location.city 
+          ? `${data.response.location.city}, ${data.response.location.region}` 
+          : prevFarmer.location,
+        weeklyForecast: dynamicForecast 
+      }));
+    }
+  } catch (error) {
+    console.error("Error fetching weather:", error);
+  }
+};
+
+// 2. Fixed useEffect with empty dependency array
+useEffect(() => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        userLocation(latitude, longitude);
+      },
+      (error) => {
+        console.error("Location access denied or failed:", error);
+        // Fallback: call with default coordinates if user blocks location
+        userLocation(16.8661, 96.1951); 
+      }
+    );
+  }
+}, []); // <--- CRITICAL: Added empty array here
+
+// 3. Separate effect to log state changes (for debugging only)
+useEffect(() => {
+  if (farmer.weeklyForecast?.length > 0) {
+    console.log("Updated Farmer State:", farmer);
+  }
+}, [farmer]);
+
   // Shortcut to access current language strings
   const t = translations[lang];
   

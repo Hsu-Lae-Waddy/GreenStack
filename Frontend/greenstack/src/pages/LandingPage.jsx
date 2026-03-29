@@ -1,4 +1,5 @@
-import React from "react";
+import React  from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronRight,
   Sprout,
@@ -19,9 +20,23 @@ import { useLanguage } from '../context/LanguageContext'; // 1. Import the hook
 
 
 const LandingPage = () => {
+
     const { lang } = useLanguage(); 
     const t = translations[lang];
   
+
+  const navigate=useNavigate()
+  const handleUser = async()=>{
+
+    const token = localStorage.getItem("token")
+    if (token){
+      navigate('/home')
+    }else{
+      navigate('/login')
+    }
+
+  }
+
   return (
 
     /* Increased bottom padding (pb-40) for mobile to accommodate the floating navbar */
@@ -31,6 +46,7 @@ const LandingPage = () => {
 
       
       {/* 3. ADVERTISEMENT SECTION */}
+
    <section className="px-5 py-6 md:px-20 max-w-7xl mx-auto">
   <div className="bg-[#C5A677] rounded-[2rem] md:rounded-[3rem] p-8 md:p-16 text-white relative flex flex-row items-center justify-between overflow-hidden shadow-xl min-h-[220px] md:min-h-[450px]">
     
@@ -70,6 +86,32 @@ const LandingPage = () => {
     </div>
   </div>
 </section>
+
+      <section className="px-5 py-6 md:px-20 max-w-7xl mx-auto">
+        <div className="bg-[#C5A677] rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 text-white relative flex flex-row items-center justify-between overflow-hidden shadow-xl min-h-[180px] md:min-h-[400px]">
+          <div className="w-[60%] md:w-1/2 z-20">
+            <h2 className="text-xl md:text-5xl font-black leading-tight mb-3 md:mb-6">
+              Grow Smarter <br className="hidden md:block" />{" "}
+              <span className="text-[#3F865F]">Together</span>
+            </h2>
+            <p className="text-[10px] md:text-lg font-medium opacity-90 mb-4 md:mb-10 max-w-[200px] md:max-w-sm">
+              Daily expert tips for your specific local crops.
+            </p>
+            <button onClick={handleUser} className="bg-[#3F865F] text-white px-4 py-2 md:px-10 md:py-5 rounded-xl md:rounded-[2rem] font-bold md:font-black text-[10px] md:text-lg shadow-lg flex items-center gap-2">
+              Start Now <ChevronRight size={14} />
+            </button>
+          </div>
+          <div className="w-[35%] md:w-1/2 flex justify-end items-end relative h-full">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 md:w-80 md:h-80 bg-white/10 rounded-full blur-3xl"></div>
+            <img
+              src="./src/assets/home_character_1.png"
+              alt="Farmer"
+              className="w-28 sm:w-36 md:w-80 h-auto z-10 drop-shadow-2xl translate-y-2 md:translate-y-8"
+            />
+          </div>
+        </div>
+      </section>
+
 
       <section className="px-5 py-6 md:px-20 max-w-7xl mx-auto">
         <div className="bg-[#3F865F] rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-16 text-white relative flex flex-col md:flex-row items-center justify-between overflow-hidden shadow-2xl shadow-[#3F865F]/30 min-h-[450px]">

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import {
   User,
   MapPin,
@@ -17,6 +17,7 @@ import {
   Edit2, 
  Briefcase, CheckCircle2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import translations from './translations';
 import { useLanguage } from '../context/LanguageContext'; 
@@ -24,7 +25,11 @@ import { useLanguage } from '../context/LanguageContext';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("Overview");
+
   const { lang } = useLanguage(); 
+
+
+  const navigate=useNavigate();
 
     const [isSelectingRole, setIsSelectingRole] = useState(false);
     const [selectedRole, setSelectedRole] = useState(null);
@@ -34,17 +39,145 @@ const UserProfile = () => {
 // Shortcut to access current language strings
   const t = translations[lang];
   // Farmer Mock Data
-  const farmer = {
-    name: "U Ba Kyaw",
-    phone: "09-445566778",
+  // const farmer = {
+  //   name: "U Ba Kyaw",
+  //   phone: "09-445566778",
+  //   email: "bakyawoffice@gmail.com",
+  //   location: "Hmawbi, Yangon",
+  //   joined: "January 2023",
+  //   landSize: "15 Acres",
+  //   mainCrops: ["Paddy", "Beans", "hello", "hello"],
+  //   status: "Master Farmer",
+  //   avatar: "./src/assets/login_character_1.png", // Replace with your image
+  // };
+
+  const [farmer, setFarmer] = useState({
+    name: "",
+    phone: "",
     email: "bakyawoffice@gmail.com",
     location: "Hmawbi, Yangon",
     joined: "January 2023",
     landSize: "15 Acres",
     mainCrops: ["Paddy", "Beans", "hello", "hello"],
     status: "Master Farmer",
-    avatar: "./src/assets/login_character_1.png", // Replace with your image
+    avatar: "./src/assets/login_character_1.png", 
+  });
+  const route="http://127.0.0.1:8080"
+  const token = localStorage.getItem("token");
+  useEffect(() => {
+  const fetchUser = async () => {
+    
+    console.log(token);
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${route}/profile`, {
+        method: "POST", // Note: Fetching profiles is usually a GET request, but keeping POST as per your backend setup
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch profile:", response.status);
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Fetched user data:", data.user);
+
+      // Merge the new data with the existing state
+      setFarmer((prevFarmer) => ({
+        ...prevFarmer, // Keep existing hardcoded fields like email, location, avatar
+        name: data.user.username || prevFarmer.name, // Map 'username' to 'name'
+        phone: data.user.phone || prevFarmer.phone,
+        // You can also format the date if you want to replace 'joined'
+        joined: new Date(data.user.created_at).toLocaleDateString('en-US', {
+          month: 'long',
+          year: 'numeric'
+        })
+      }));
+
+    } catch (error) {
+      console.error("Error during fetch:", error);
+    }
   };
+
+  fetchUser();
+}, []);
+
+    const [location, setLocation] = useState({ lat: null, lon: null });
+    const [locationError, setLocationError] = useState(null);
+
+    const userLocation=async (latitude,longitude)=>{
+          const response = await fetch(`${route}/get7DaysWeather`, {
+          method: "POST", // Note: Fetching profiles is usually a GET request, but keeping POST as per your backend setup
+           headers: {
+      "Content-Type": "application/json",
+      // ADD THIS LINE:
+      "Authorization": `Bearer ${token}` 
+    },
+          body: JSON.stringify({
+            latitude, longitude
+          })
+          });
+          const data = await response.json();
+          // console.log()
+          setFarmer((prevFarmer) => ({
+        ...prevFarmer, // Keep existing hardcoded fields like email, location, avatar
+      location: `${data.response.location.city},${data.response.location.region}` 
+        
+      }));
+    console.log("Weather Data:", data.response);
+    }
+
+const SelectedRole=async(selectedRole)=>{
+  setSelectedRole(selectedRole);
+  if (!token) return;
+
+  const response = await fetch("http://127.0.0.1:8080/get-user-role", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      // ADD THIS LINE:
+      "Authorization": `Bearer ${token}` 
+    },
+    // If you send it in the header, you don't strictly need it in the body,
+    // but keeping it doesn't hurt.
+    body: JSON.stringify({ token }) 
+  });
+
+  const data = await response.json();
+  if (response.ok) {
+    localStorage.setItem("userRole", data.role);
+  }
+}
+useEffect( () => {
+  
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setLocation({ lat: latitude, lon: longitude });
+          userLocation(latitude,longitude)
+        },
+        (error) => {
+          console.error("Error getting location:", error.message);
+          setLocationError(error.message);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      console.error("Geolocation not supported in this browser");
+      setLocationError("Geolocation not supported");
+    }
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-white pb-32 md:pb-12">
@@ -191,11 +324,11 @@ const UserProfile = () => {
               label={t.landSize}
               value={farmer.landSize}
             />
-            <StatBox
+            {/* <StatBox
               icon={<Sprout size={20} />}
               label={t.mainCrops}
               value={farmer.mainCrops.join(", ")}
-            />
+            /> */}
             <StatBox
               icon={<LayoutList size={20} />}
               label={t.marketPosts}
@@ -232,13 +365,13 @@ const UserProfile = () => {
               // STEP 2: SHOW SELECTION OPTIONS (Farmer or Broker)
               <div className="flex gap-2 p-1 bg-[#F9FBF7] rounded-2xl border-2 border-dashed border-[#A3C475] animate-in fade-in zoom-in duration-300">
                 <button 
-                  onClick={() => setSelectedRole('Farmer')}
+                  onClick={() => SelectedRole('Farmer')}
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-white rounded-xl text-xs font-black text-[#3F865F] hover:bg-[#3F865F] hover:text-white transition-all shadow-sm"
                 >
                   <User size={14} /> {t.farmer}
                 </button>
                 <button 
-                  onClick={() => setSelectedRole('Broker')}
+                  onClick={() => SelectedRole('Broker')}
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-white rounded-xl text-xs font-black text-[#3F865F] hover:bg-[#3F865F] hover:text-white transition-all shadow-sm"
                 >
                   <Briefcase size={14} /> {t.broker}
@@ -255,7 +388,14 @@ const UserProfile = () => {
             </div>
           )}
 
-          <ActionButton icon={<LogOut size={18} />} label={t.logout} danger />
+          <ActionButton icon={<LogOut size={18} 
+          onClick={() => {
+          localStorage.removeItem("token");
+          // Also clear other user data if you have any
+          localStorage.removeItem("userRole"); 
+          navigate('/');
+        }} />} 
+          label={t.logout} danger />
         </div>
       </div>
       

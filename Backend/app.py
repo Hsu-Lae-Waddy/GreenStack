@@ -1,9 +1,24 @@
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import firebase_admin
+from groq import Groq
+from functools import wraps
 from firebase_admin import credentials, firestore
-import os,json
+from functions import get_universal_npk_ranks,fetch_api_data,get_weather_with_location,get_advanced_npk_ranks,predict_today
+from firebase_admin import credentials, firestore, auth
+import os,json,requests
+import jwt
+import datetime
+
+
 app = Flask(__name__)
+from dotenv import load_dotenv
+import os
+
+load_dotenv() # This loads the variables from .env
+
+# Now you can safely get the key
+SECRET_KEY = os.getenv("GROQ_API_KEY")
 
 # Firebase init
 # Load from env
@@ -11,7 +26,10 @@ app = Flask(__name__)
 # for production
 # firebase_key = os.environ.get("FIREBASE_KEY")
 # firebase_dict = json.loads(firebase_key)
+# # SECRET_KEY = os.environ.get("GROQ_API_KEY")
+# SECRET_KEY="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"  # groq key for chat bot
 
+# firbase initialization
 firebase_dict = "./firebase-auth.json"
 cred = credentials.Certificate(firebase_dict)
 firebase_admin.initialize_app(cred)
@@ -20,6 +38,13 @@ db = firestore.client()
 collection = db.collection("users")
 
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+# JWT verification decorator
+
+
+
+
+
 
 # UI Route
 @app.route("/")
@@ -56,6 +81,225 @@ def update_data(id):
 def delete_data(id):
     collection.document(id).delete()
     return jsonify({"message": "Deleted"})
+
+
+@app.route('/npk-Rank',methods=['GET'])
+def getNpkRank():
+    data=fetch_api_data(16.60001638075996, 97.34907779784488)
+    res=get_universal_npk_ranks(data)
+    return jsonify({"message":"Rank Got","response":res,"datas":data})
+
+
+@app.route("/get7DaysWeather",methods=["POST"])
+def getWeather():
+    data=request.json
+    data=get_weather_with_location(data['latitude'], data['longitude'])
+    return jsonify({"message":"Weather Got","response":data})
+
+
+# 🤖 Chatbot (Groq)
+@app.route("/chatBot", methods=["POST"])
+def chat():
+    client = Groq(api_key=SECRET_KEY)
+    data = request.get_json()
+    message = data.get("question")
+    system_prompt = (
+    "You are a climate-smart farming assistant for Myanmar farmers. "
+    "Guidelines: Use formal, a little long (not boring long),perfect  and polite Burmese (ဗမာစာ) answers. "
+    "Keep responses concise, practical, and culturally relevant. "
+    "\n\nExample 1:"
+    "\nUser: စပါးစိုက်ပျိုးဖို့ အကောင်းဆုံးအချိန်က ဘယ်တော့လဲ?"
+    "\nAssistant: မိုးစပါးအတွက် မေလနှောင်းပိုင်းမှ ဇွန်လအတွင်း စိုက်ပျိုးခြင်းသည် အကောင်းဆုံးဖြစ်ပါသည်။ "
+    "ရာသီဥတုပြောင်းလဲမှုကြောင့် မိုးရွာသွန်းမှုကို သတိပြုရန် လိုအပ်ပါသည်။"
+)
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[
+                {
+                    "role": "system",
+                    "content": system_prompt
+                },
+                {
+                    "role": "user",
+                    "content": message
+                }
+            ]
+        )
+
+        return jsonify({
+            "reply": response.choices[0].message.content
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+# Signup
+@app.route("/login", methods=["POST"])
+def auth():
+    data = request.json
+    username = data.get("name")
+    phone = data.get("phone")
+
+    if not username or not phone:
+        return jsonify({"error": "Missing fields"}), 400
+
+    # Check if user exists by phone
+    user_docs = collection.where("phone", "==", phone).stream()
+    user_doc = next(user_docs, None)
+
+    if user_doc:
+        # Phone exists → login
+        user_data = user_doc.to_dict()
+        if user_data.get("username") != username:
+            return jsonify({"error": "Phone exists but username mismatch"}), 409
+
+        # Generate JWT
+        token = jwt.encode({
+            "user": username,
+            "phone": phone,
+            "role":"",
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, SECRET_KEY, algorithm="HS256")
+        user_data["id"] = user_doc.id
+        return jsonify({
+            "message": "Login successful",
+            "user": user_data,
+            "token": token
+        }), 200
+
+    else:
+        # Phone does not exist → register
+        token = jwt.encode({
+            "user": username,
+            "phone": phone,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, SECRET_KEY, algorithm="HS256")
+
+        # Add new user
+        doc_ref = collection.add({
+            "username": username,
+            "phone": phone,
+            "created_at": firestore.SERVER_TIMESTAMP
+        })
+
+        return jsonify({
+            "message": "User registered",
+            "id": doc_ref[1].id,
+            "token": token
+        }), 201
+
+
+
+@app.route("/profile", methods=["POST"])
+def profile():
+    try:
+        # 1️⃣ Get token from header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer"):
+            return jsonify({"error": "Token missing"}), 401
+
+        token = auth_header.split(" ")[1]
+        print(token)
+        # # 2️⃣ Decode JWT to get user ID
+        # decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        # user_id = decoded.get("id")  # <-- store document ID in JWT during login/signup
+        # if not user_id:
+        #     return jsonify({"error": "User ID missing in token"}), 400
+
+        # 3️⃣ Fetch Firestore document by ID
+        doc_ref = collection.document(token)
+        doc = doc_ref.get()
+        if not doc.exists:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = doc.to_dict()
+        user_data["id"] = doc.id
+
+        return jsonify({"user": user_data}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        print("Error in /profile:", e)
+        return jsonify({"error": "Internal server error"}), 500
+
+
+
+
+@app.route("/get-user-role", methods=["POST"])
+def get_user_role():
+    auth_header = request.headers.get("Authorization")
+    
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Token missing or malformed"}), 401
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        # 1️⃣ Decode the token to get the actual User ID (uid)
+        # If using Firebase Admin SDK:
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token['uid']
+        
+        # 2️⃣ Fetch the document using the UID, not the token string
+        doc_ref = db.collection("users").document(uid).get()
+        
+        if not doc_ref.exists:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = doc_ref.to_dict()
+        role = user_data.get("role", "farmer") # Get role from dict
+
+        return jsonify({"role": role}), 200
+
+    except Exception as e:
+        print("Auth Error:", e)
+        return jsonify({"error": "Invalid or expired token"}), 401
+
+
+@app.route("/cropRecommendation", methods=["POST", "OPTIONS"])
+def crop_recommendation():
+    # Handle the preflight request automatically
+    if request.method == "OPTIONS":
+        return "", 200
+    data = request.get_json()
+    lat = data.get("lat")
+    lon = data.get("lon")
+    # 1. Fetch NPK (Your custom function)
+    npkData = fetch_api_data(lat,lon)
+    print(npkData)
+    npk=get_universal_npk_ranks(npkData)
+    # 2. Fetch Weather
+    weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=dd5dbf7b2cfed5c0a6c17be4d15aba12&units=metric"
+    weather_res = requests.get(weather_url)
+    url = "https://agriculturalhackathonserverhost-production.up.railway.app/rainTest"
+    # Data to send in the POST body
+    payload = {
+        "lat": lat,
+        "lon": lon
+    }
+    rainFall=requests.post(url, json=payload).json()
+    weather_data = weather_res.json()
+    data=[
+        npk["N_RANK"],
+        npk["P_RANK"],
+        npk["K_RANK"],
+        weather_data['main']['temp'],
+        weather_data['main']['humidity'],
+        rainFall["rainFall"],
+        weather_data['main']['pressure']
+    ]
+    today_result = predict_today(data)
+    # 3. Return Combined Data
+    return jsonify({
+        "message": "Data fetched successfully!",
+        "result":today_result,
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import MobileNavbar from '../components/MobileNavbar'
 import translations from './translations';
 import Navbar from '../components/Navbar'
+
 import {
   Search, Phone, MapPin, User, Sprout, Bot,
   LayoutList, Bookmark, ArrowUpRight, ArrowDownRight,
@@ -15,14 +16,6 @@ const MarketPrice = () => {
   const t = translations[lang];
   // 1. STANDARD PRICE DATA (Market Averages)
   const standardPrices = [
-    { category: "Paddy", avg: "2,750,000", change: "+20k", trend: "up" },
-    { category: "Rice", avg: "152,000", change: "+2k", trend: "up" },
-    { category: "Beans", avg: "2,950,000", change: "-10k", trend: "down" },
-    { category: "Corn", avg: "1,150", change: "0", trend: "steady" },
-    { category: "Paddy", avg: "2,750,000", change: "+20k", trend: "up" },
-    { category: "Rice", avg: "152,000", change: "+2k", trend: "up" },
-    { category: "Beans", avg: "2,950,000", change: "-10k", trend: "down" },
-    { category: "Corn", avg: "1,150", change: "0", trend: "steady" },
     { category: "Paddy", avg: "2,750,000", change: "+20k", trend: "up" },
     { category: "Rice", avg: "152,000", change: "+2k", trend: "up" },
     { category: "Beans", avg: "2,950,000", change: "-10k", trend: "down" },
