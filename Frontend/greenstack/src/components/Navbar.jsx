@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 
 const Navbar = (props) => {
-  const [active, setActive] = useState(props.name || 'Home');
+  const [active, setActive] = useState(props.name || 'landing');
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   // New States for Crop Tips
@@ -57,7 +57,7 @@ const Navbar = (props) => {
             {active === 'Crop Tips' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#3F865F] rounded-full"></span>}
           </button>
           
-          <a href="#" onClick={() => setActive('Feedback')} className={`relative pb-1 transition-all ${active === 'Feedback' ? 'text-[#3F865F]' : 'text-[#3F865F]/60'}`}>Feedback</a>
+        
         </div>
 
         <div className="flex items-center gap-4">
