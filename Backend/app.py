@@ -5,7 +5,8 @@ from firebase_admin import credentials, firestore, auth
 import os,json
 import jwt
 import datetime
-
+import joblib
+import numpy as np
 
 app = Flask(__name__)
 SECRET_KEY = "c2f9a7d4e8b1c3f6a9d0e5f7b2c4a8d1e6f9b3c7a2d5e8f1"
@@ -26,6 +27,10 @@ db = firestore.client()
 collection = db.collection("users")
 
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+# Load ML model and scaler
+model = joblib.load("model.pkl")
+scaler = joblib.load("scaler.pkl")
 
 # UI Route
 @app.route("/")
@@ -64,7 +69,7 @@ def delete_data(id):
     return jsonify({"message": "Deleted"})
 
 # Signup
-@app.route("/signup", methods=["POST"])
+@app.route("/signup", methods=["POST"])j 
 def signup():
     data = request.json
     username = data.get("username")
@@ -136,6 +141,29 @@ def login():
         "message": "Login successful",
         "user": user_data
     }), 200
+
+
+# Predict route
+@app.route("/predict", methods=["POST"])
+def predict():
+    data = request.json
+    
+    features = [
+        data["N"],
+        data["P"],
+        data["K"],
+        data["ph"],
+        data["soil_type"]
+        
+    ]
+    
+    input_data = np.array([features])
+    prediction = model.predict(input_data)
+    
+    return jsonify({"crop": prediction[0]})
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
