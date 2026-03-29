@@ -14,7 +14,7 @@
     Actions:"လုပ်ဆောင်ချက်များ",
     crops: "စိုက်ပျိုးထားသောအပင်များ",
     posts: "ပို့စ်များ",
-    landSize: "မြေပမာဏ",
+    landSize: "မြေဧက",
     mainCrops: "အဓိကစိုက်ပျိုးပင်များ",
     marketPosts: "စျေးကွက်ပို့စ်များ",
     editProfile: "ပရိုဖိုင်ကိုပြင်မည်",
@@ -25,6 +25,42 @@
     roleSaved: "သိမ်းပြီး",
     locked: "ပိတ်မည်",
     logout: "ထွက်ရန်",
+    //Home
+    farmersAdvice: "တောင်သူအကြံပြုချက်",
+    feedbackTitle: "အကြံပြုချက် ပေးပါ",
+    feedbackDesc:
+      "Smart Farming ကိုတိုးတက်အောင် သင့်အကြံ၊ ပြဿနာ၊ အကြံပြုချက်များကို မျှဝေပါ။",
+    yourName: "သင့်နာမည်",
+    message: "မက်ဆေ့ချ်ရေးပါ...",
+    sendMessage: "မက်ဆေ့ချ်ပို့မည်",
+    services: "ဝန်ဆောင်မှုများ",
+    marketPrices: "စျေးနှုန်းများ",
+    cropDiagnosis: "ရောဂါစစ်ဆေးမှု",
+    weatherAlerts: "မိုးလေဝသ သတိပေးချက်",
+    support: "အကူအညီ",
+    followUs: "ကျွန်ုပ်တို့ကို Follow လုပ်ပါ",
+    growSmarter: "ပိုမိုကောင်းမွန်စွာ စိုက်ပျိုးပါ",
+    startNow: "စတင်မည်",
+    forecast: "၇ ရက် မိုးလေဝသ",
+  //Nav bar
+  home: "ပင်မစာမျက်နှာ",
+    marketPrice: "စျေးနှုန်း",
+    cropTips: "စိုက်ပျိုးရေး လမ်းညွန်",
+    feedback: "အကြံပြုချက်",
+    profile: "ပရိုဖိုင်",
+    cropRecommendations: "စိုက်ပျိုး အကြံပြုချက်",
+    basedOnSoil: "မြေအမျိုးအစားအပေါ် အခြေခံသည်",
+    soilQuestion: "သင့်လယ်မြေမှာ ဘယ်မြေအမျိုးအစားရှိပါသလဲ?",
+    getAdvice: "အကြံဉာဏ် ရယူမည်",
+    recommendationFor: "အကြံပြုချက်",
+    greenAssistant: "Green Assistant",
+    chatPlaceholder: "မက်ဆေ့ချ် ရိုက်ထည့်ပါ...",
+    chatHello: "မင်္ဂလာပါ! ကျွန်ုပ်သည် AI အကူအညီဖြစ်သည်။  စိုက်ပျိုးရေးနဲ့သိလိုရာတွေ မေးမြန်းနိုင်ပါသည်။",
+    soils: {
+      Clay: "မြေကပ်",
+      Loamy: "မြေညှပ်",
+      Sandy: "သဲမြေ",
+      Silt: "နုမြေ"}
   },
   en: {
     welcome: "Welcome Back!",
@@ -52,6 +88,44 @@
     roleSaved: "Role Saved",
     locked: "Locked",
     logout: "Logout",
+
+    //Home
+    farmersAdvice: "Farmer's Advice",
+    feedbackTitle: "Give Feedback",
+    feedbackDesc:
+      "Share your ideas, problems, or suggestions to improve Smart Farming.",
+    yourName: "Your Name",
+    message: "Write your message...",
+    sendMessage: "Send Message",
+    services: "Services",
+    marketPrices: "Market Prices",
+    cropDiagnosis: "Crop Diagnosis",
+    weatherAlerts: "Weather Alerts",
+    support: "Support",
+    followUs: "Follow Us",
+    growSmarter: "Grow Smarter Together",
+    startNow: "Start Now",
+    forecast: "7-Day Forecast",
+//Navbar
+    home: "Home",
+    marketPrice: "Market Price",
+    cropTips: "Crop Tips",
+    feedback: "Feedback",
+    profile: "Profile",
+    cropRecommendations: "Crop Recommendations",
+    basedOnSoil: "Based on Soil Type",
+    soilQuestion: "What type of soil do you have in your field?",
+    getAdvice: "Get Advice",
+    recommendationFor: "Recommendation for",
+    greenAssistant: "Green Assistant",
+    chatPlaceholder: "Type your message...",
+    chatHello: "Hello! I am your AI assistant. Ask me about Paddy prices or crop health.",
+    soils: {
+      Clay: "Clay",
+      Loamy: "Loamy",
+      Sandy: "Sandy",
+      Silt: "Silt"
+    }
   }
 };
 

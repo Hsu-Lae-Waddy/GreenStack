@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import React,{useState} from "react";
 import MarketPrice from "./MarketPrice";
+=======
+import React, {useState} from "react";
+>>>>>>> 3236e9c (mmsub_2)
 import {
   Droplets,
   Wind,
@@ -21,8 +25,9 @@ import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 import translations from './translations';
 
+
 const HomePage = () => {
-  // Set default language to 'mm' (Myanmar)
+
   const [lang, setLang] = useState('mm');
   // Shortcut to access current language strings
   const t = translations[lang];
@@ -73,7 +78,7 @@ const HomePage = () => {
 
             <div className="hidden md:block bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-md">
               <p className="text-[10px] font-black text-[#A3C475] uppercase tracking-widest mb-2">
-                Farmer's Advice
+                {t.farmersAdvice}
               </p>
               <p className="text-sm font-medium italic opacity-90 max-w-[200px]">
                 "High humidity expected. Check for fungal growth on paddy
