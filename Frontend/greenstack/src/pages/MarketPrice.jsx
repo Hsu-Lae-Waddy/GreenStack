@@ -37,7 +37,7 @@ const MarketPrice = () => {
     <div className="min-h-screen bg-[#FDFEFA] pb-32 md:pb-12">
 
       {/* DESKTOP NAVBAR */}
-      <Navbar name='Market Price'/>
+      {/* <Navbar name='Market Price'/> */}
 
       {/* HEADER & SEARCH AREA */}
       <header className="px-6 pt-8 md:px-20 max-w-6xl mx-auto">

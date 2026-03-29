@@ -18,6 +18,7 @@ import {
  Briefcase, CheckCircle2,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
+import translations from './translations';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("Overview");
@@ -25,7 +26,10 @@ const UserProfile = () => {
     const [isSelectingRole, setIsSelectingRole] = useState(false);
     const [selectedRole, setSelectedRole] = useState(null);
   
-
+// Set default language to 'mm' (Myanmar)
+  const [lang, setLang] = useState('mm');
+// Shortcut to access current language strings
+  const t = translations[lang];
   // Farmer Mock Data
   // const farmer = {
   //   name: "U Ba Kyaw",
@@ -240,13 +244,13 @@ useEffect( () => {
             <div className="flex gap-4 md:mb-2">
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl text-center min-w-[90px] shadow-lg">
                 <p className="text-[10px] text-[#A3C475] font-black uppercase tracking-[0.2em] mb-1">
-                  Crops
+                  {t.crops}
                 </p>
                 <p className="text-xl font-black text-white">08</p>
               </div>
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl text-center min-w-[90px] shadow-lg">
                 <p className="text-[10px] text-[#A3C475] font-black uppercase tracking-[0.2em] mb-1">
-                  Posts
+                  {t.posts}
                 </p>
                 <p className="text-xl font-black text-white">142</p>
               </div>
@@ -274,7 +278,7 @@ useEffect( () => {
               <Award className="text-[#3F865F]" size={32} />
             </div>
             <h3 className="text-[#3F865F] font-black uppercase text-xs tracking-widest mb-1">
-              Farming Rank
+              {t.rank}
             </h3>
             <p className="text-xl font-black text-[#C5A677]">{farmer.status}</p>
             <div className="mt-4 h-2 w-full bg-gray-100 rounded-full overflow-hidden">
@@ -288,7 +292,7 @@ useEffect( () => {
           {/* Contact Card */}
           <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm space-y-4">
             <h3 className="text-[#3F865F] font-black text-sm uppercase tracking-widest border-b border-gray-50 pb-2">
-              Contact Info
+              {t.contactInfo}
             </h3>
             <div className="flex items-center gap-3 text-sm font-bold text-gray-500">
               <Phone size={18} className="text-[#C5A677]" /> {farmer.phone}
@@ -309,17 +313,17 @@ useEffect( () => {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <StatBox
               icon={<Tractor size={20} />}
-              label="Land Size"
+              label={t.landSize}
               value={farmer.landSize}
             />
             {/* <StatBox
               icon={<Sprout size={20} />}
-              label="Main Crops"
+              label={t.mainCrops}
               value={farmer.mainCrops.join(", ")}
             /> */}
             <StatBox
               icon={<LayoutList size={20} />}
-              label="Market Posts"
+              label={t.marketPosts}
               value="24"
             />
           </div>
@@ -329,11 +333,11 @@ useEffect( () => {
       {/* ... other code ... */}
 
       <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-        <h3 className="text-[#3F865F] font-black text-lg mb-4 italic">Actions</h3>
+        <h3 className="text-[#3F865F] font-black text-lg mb-4 italic">{t.Actions}</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ActionButton icon={<Edit2 size={18} />} label="Edit Profile" />
-          <ActionButton icon={<LayoutList size={18} />} label="My Market Listings" />
+          <ActionButton icon={<Edit2 size={18} />} label={t.editProfile} />
+          <ActionButton icon={<LayoutList size={18} />} label={t.myMarketListings} />
 
           {/* 2. LOGIC FOR THE SAVED ROLE BUTTON */}
           {!selectedRole ? (
@@ -345,7 +349,7 @@ useEffect( () => {
                 className="flex items-center justify-between p-4 rounded-2xl border border-gray-50 border-l-4 border-l-[#A3C475] bg-[#F9FBF7] text-[#3F865F] hover:shadow-md transition-all active:scale-95"
               >
                 <div className="flex items-center gap-3 font-bold text-sm">
-                  <Bookmark size={18} /> Saved Role
+                  <Bookmark size={18} /> {t.savedRole}
                 </div>
                 <ChevronRight size={18} opacity={0.5} />
               </button>
@@ -356,13 +360,13 @@ useEffect( () => {
                   onClick={() => SelectedRole('Farmer')}
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-white rounded-xl text-xs font-black text-[#3F865F] hover:bg-[#3F865F] hover:text-white transition-all shadow-sm"
                 >
-                  <User size={14} /> Farmer
+                  <User size={14} /> {t.farmer}
                 </button>
                 <button 
                   onClick={() => SelectedRole('Broker')}
                   className="flex-1 flex items-center justify-center gap-2 py-3 bg-white rounded-xl text-xs font-black text-[#3F865F] hover:bg-[#3F865F] hover:text-white transition-all shadow-sm"
                 >
-                  <Briefcase size={14} /> Broker
+                  <Briefcase size={14} /> {t.broker}
                 </button>
               </div>
             )
@@ -370,13 +374,13 @@ useEffect( () => {
             // STEP 3: SHOW SAVED STATE & DISABLE BUTTON
             <div className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 bg-gray-50/50 opacity-80 cursor-not-allowed">
               <div className="flex items-center gap-3 font-bold text-sm text-[#3F865F] italic">
-                <CheckCircle2 size={18} /> Role Saved: <span className="text-[#C5A677]">{selectedRole}</span>
+                <CheckCircle2 size={18} /> {t.roleSaved}: <span className="text-[#C5A677]">{selectedRole}</span>
               </div>
               <span className="text-[10px] font-black uppercase text-gray-300 tracking-widest italic">Locked</span>
             </div>
           )}
 
-          <ActionButton icon={<LogOut size={18} />} label="Logout" danger />
+          <ActionButton icon={<LogOut size={18} />} label={t.logout} danger />
         </div>
       </div>
       

@@ -6,7 +6,7 @@ import {
 import { useNavigate } from "react-router-dom";
 const Navbar = (props) => {
   const navigate=useNavigate()
-  const [active, setActive] = useState(props.name || 'Home');
+  const [active, setActive] = useState(props.name || 'landing');
   const [isChatOpen, setIsChatOpen] = useState(false);
   
   // New States for Crop Tips
@@ -14,12 +14,7 @@ const Navbar = (props) => {
   const [selectedSoil, setSelectedSoil] = useState(null);
   const [tipsResponse, setTipsResponse] = useState(null);
 
-  const navLinks = [
-    { name: 'Home', icon: <Sprout size={24}/>, href: '/' },
-    { name: 'Market Price', icon: <LayoutList size={24}/>, href: '/marketPrice' },
-    { name: 'Crop Tips', icon: <Sprout size={24}/>, href: '#' },
-    { name: 'Feedback', icon: <Bookmark size={18}/>, href: '#' },
-  ];
+
   const [messages, setMessages] = useState([]);
 const [question, setQuestion] = useState("");
   const askQuestion=async()=>{
@@ -53,13 +48,31 @@ const [question, setQuestion] = useState("");
 
   const soilTypes = ['ရွှံ့မြေ', 'မြေနီ', 'သဲမြေ', 'နှုံးမြေ'];
   
-  // Recommendation Logic
-  const recommendations = {
-    'ရွှံ့မြေ': 'Rice, Wheat, and Pulses. These crops grow best in clay because it holds water well.',
-    'မြေနီ': 'Tomato, Cotton, and Sugarcane. Loamy soil is rich in nutrients and perfect for most crops!',
-    'သဲမြေ': 'Watermelon, Peanuts, and Potatoes. These crops love the well-draining nature of sandy soil.',
-    'နှုံးမြေ': 'Lettuce, Broccoli, and various tubers. Silt soil is very fertile and holds moisture well.'
-  };
+  const agriProducts = {
+  // Grains & Cereals
+  rice: "ဆန် / စပါး",
+  maize: "ပြောင်းဖူး",
+  blackgram: "မတ်ပဲ",
+  mungBean: "ပဲတီစိမ်း",
+  pigeonpeas: "ပဲစင်းငုံ",
+  chickpea: "ကုလားပဲ",
+  lentil: "ပဲနီလေး",
+  kidneyBeans: "ပဲနီ",
+  mothBeans: "ပဲလွန်း",
+  pomegranate: "သလဲသီး",
+  banana: "ငှက်ပျောသီး",
+  mango: "သရက်သီး",
+  grapes: "စပျစ်သီး",
+  watermelon: "ဖရဲသီး",
+  muskmelon: "သခွားမွှေး",
+  apple: "ပန်းသီး",
+  orange: "လိမ္မော်သီး",
+  papaya: "သင်္ဘောသီး",
+  coconut: "အုန်းသီး",
+  cotton: "ဝါ",
+  jute: "ဂုန်လျှော်",
+  coffee: "ကော်ဖီ"
+};
 
   const [location,setLocation]=useState({});
   const handleSendSoil = async() => {
@@ -113,8 +126,8 @@ const [question, setQuestion] = useState("");
         </div>
 
         <div className="flex gap-10 font-bold text-sm uppercase tracking-widest">
-          <a href="#" onClick={() => setActive('Home')} className={`relative pb-1 transition-all ${active === 'Home' ? 'text-[#3F865F]' : 'text-[#3F865F]/60'}`}>Home</a>
-          <a href="#" onClick={() => setActive('Market Price')} className={`relative pb-1 transition-all ${active === 'Market Price' ? 'text-[#3F865F]' : 'text-[#3F865F]/60'}`}>Market Price</a>
+          <a href="#" onClick={() => {navigate('/home'); setActive('Home')}} className={`relative pb-1 transition-all ${active === 'Home' ? 'text-[#3F865F]' : 'text-[#3F865F]/60'}`}>Home</a>
+          <a href="#" onClick={() => {navigate('#marketPrice'); setActive('Market Price')}} className={`relative pb-1 transition-all ${active === 'Market Price' ? 'text-[#3F865F]' : 'text-[#3F865F]/60'}`}>Market Price</a>
           
           {/* CROP TIPS TRIGGER */}
           <button onClick={() => { setActive('Crop Tips'); setIsTipsOpen(true); }} className={`relative pb-1 transition-all uppercase font-bold text-sm tracking-widest ${active === 'Crop Tips' ? 'text-[#3F865F]' : 'text-[#3F865F]/60'}`}>
@@ -122,7 +135,7 @@ const [question, setQuestion] = useState("");
             {active === 'Crop Tips' && <span className="absolute bottom-0 left-0 w-full h-0.5 bg-[#3F865F] rounded-full"></span>}
           </button>
           
-          <a href="#" onClick={() => setActive('Feedback')} className={`relative pb-1 transition-all ${active === 'Feedback' ? 'text-[#3F865F]' : 'text-[#3F865F]/60'}`}>Feedback</a>
+        
         </div>
 
         <div className="flex items-center gap-4">
@@ -306,7 +319,7 @@ const [question, setQuestion] = useState("");
           <div className="flex justify-between items-end mb-3">
             <div>
               <h4 className="text-xl font-black text-gray-800 capitalize leading-none">
-                {item.crop}
+                {agriProducts[item.crop] || item.crop}
               </h4>
               <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tight mt-1">
                 Suitability Score
