@@ -1,72 +1,86 @@
 
 import requests
+import joblib
+import numpy as np
+predictModel = joblib.load("crop_model_cat.pkl")
+try:
+    scaler = joblib.load("scaler_cat.pkl")
+except:
+    scaler = None
+
+
 
 def get_universal_npk_ranks(data):
-    # 1. Dataset Ranges (Defined by your dataset)
-    N_LIMITS = [60, 90]   # Low < 60, Med 60-90, High > 90
-    P_LIMITS = [20, 50]   # Low < 20, Med 20-50, High > 50
-    K_LIMITS = [80, 150]  # Low < 80, Med 80-150, High > 150
+    # FALLBACK: If data is None or empty, return Medium Ranks (1)
+    if not data or "soil_type" not in data or "chemical" not in data:
+        return {"N_RANK": "1", "P_RANK": "1", "K_RANK": "1"}
 
-    # 2. Extract Values from API Data
-    fao_type = data["soil_type"]["fao_classification"]
-    texture = data["soil_type"]["texture_class"] # New input
-    ph = data["chemical"]["ph_h2o"]
-    n_g_kg = data["chemical"]["nitrogen_g_kg"]
+    # 1. Dataset Ranges
+    N_LIMITS = [60, 90]   
+    P_LIMITS = [20, 50]   
+    K_LIMITS = [80, 150]  
 
-    # 3. Calculate N Rank (Direct from data)
-    # Total Nitrogen (g/kg) to Available Estimate conversion
+    # 2. Extract Values Safely
+    # Using .get() ensures that if a key is missing, we get None instead of a crash
+    soil_info = data.get("soil_type", {})
+    chem_info = data.get("chemical", {})
+
+    fao_type = soil_info.get("fao_classification")
+    texture = soil_info.get("texture_class")
+    ph = chem_info.get("ph_h2o")
+    n_g_kg = chem_info.get("nitrogen_g_kg")
+
+    # SECONDARY FALLBACK: If the core calculation values are null, return 1
+    if any(v is None for v in [fao_type, ph, n_g_kg]):
+        return {"N_RANK": "1", "P_RANK": "1", "K_RANK": "1","ph":"6.5"}
+
+    # 3. Calculate N Rank
     n_score = n_g_kg * 50
-    if n_score < N_LIMITS[0]: n_rank = "LOW"
-    elif n_score <= N_LIMITS[1]: n_rank = "MEDIUM"
-    else: n_rank = "HIGH"
+    if n_score < N_LIMITS[0]: n_rank = "0"
+    elif n_score <= N_LIMITS[1]: n_rank = "1"
+    else: n_rank = "2"
 
-    # 4. Texture Modifier (Nutrient Holding Capacity)
-    # Maps all 12 USDA texture classes to a retention multiplier
+    # 4. Texture Modifier
     texture_modifiers = {
-        # Sandy (Coarse) - Low retention
         "Sand": 0.65, "Loamy Sand": 0.75, "Sandy Loam": 0.85,
-        # Loamy (Medium) - Standard retention
         "Loam": 1.0, "Silt Loam": 1.0, "Silt": 1.0,
-        # Clay-Loamy (Fine) - High retention
         "Clay Loam": 1.1, "Silty Clay Loam": 1.1, "Sandy Clay Loam": 1.1,
-        # Clayey (Heavy) - Very high retention
         "Clay": 1.2, "Silty Clay": 1.2, "Sandy Clay": 1.2
     }
-    # Default to 1.0 if texture is missing or unknown
     t_factor = texture_modifiers.get(texture, 1.0)
 
-    # 5. Map P & K Base Potential by Soil Group
+    # 5. Map P & K Base Potential
     soil_potential = {
-        "Fluvisols": {"p": 0.60, "k": 0.60}, # River Delta (Rich)
-        "Gleysols":  {"p": 0.50, "k": 0.55}, # Wetland
-        "Ferralsols": {"p": 0.15, "k": 0.40}, # Red Upland (P-Poor)
-        "Acrisols":   {"p": 0.18, "k": 0.35}, # Acidic Hills
-        "Nitisols":   {"p": 0.40, "k": 0.50}, # Fertile Red Clay
-        "Cambisols":  {"p": 0.45, "k": 0.45}  # Young Brown Soil
+        "Fluvisols": {"p": 0.60, "k": 0.60},
+        "Gleysols":  {"p": 0.50, "k": 0.55},
+        "Ferralsols": {"p": 0.15, "k": 0.40},
+        "Acrisols":   {"p": 0.18, "k": 0.35},
+        "Nitisols":   {"p": 0.40, "k": 0.50},
+        "Cambisols":  {"p": 0.45, "k": 0.45}
     }
     base = soil_potential.get(fao_type, {"p": 0.35, "k": 0.35})
 
-    # 6. pH Adjustment Factor (Availability)
+    # 6. pH Adjustment Factor
     if 6.0 <= ph <= 7.2:
-        ph_factor = 1.2 # Optimal (Neutral)
+        ph_factor = 1.2
     elif ph < 5.5:
-        ph_factor = 0.7 # Acidic lock (Phosphorus is very low here)
+        ph_factor = 0.7
     else:
-        ph_factor = 0.9 # Alkaline lock
+        ph_factor = 0.9
 
-    # 7. Final Multi-Factor Calculation
-    # We multiply: (Max Range * Soil Type Potential * Texture Holding * pH Availability)
+    # 7. Final Calculation
     calc_p = (145 * base["p"] * t_factor) * ph_factor
     calc_k = (205 * base["k"] * t_factor) * ph_factor
 
-    # 8. Final Ranking based on your dataset thresholds
-    p_rank = "LOW" if calc_p < P_LIMITS[0] else ("MEDIUM" if calc_p <= P_LIMITS[1] else "HIGH")
-    k_rank = "LOW" if calc_k < K_LIMITS[0] else ("MEDIUM" if calc_k <= K_LIMITS[1] else "HIGH")
+    # 8. Final Ranking
+    p_rank = "0" if calc_p < P_LIMITS[0] else ("1" if calc_p <= P_LIMITS[1] else "2")
+    k_rank = "0" if calc_k < K_LIMITS[0] else ("1" if calc_k <= K_LIMITS[1] else "2")
 
     return {
         "N_RANK": n_rank,
         "P_RANK": p_rank,
-        "K_RANK": k_rank
+        "K_RANK": k_rank,
+        "ph": str(ph),  # Return pH as string for consistency
     }
 
 def get_advanced_npk_ranks(data):
@@ -234,3 +248,33 @@ def get_weather_with_location(lat, lon):
         "forecast": forecast
     }
 
+def predict_today(data, model=predictModel, scaler=scaler):
+    # Extract features list
+    if isinstance(data, dict) and "features" in data:
+        features = data["features"]
+    elif isinstance(data, list):
+        features = data
+    else:
+        raise ValueError("Input must be a dict with 'features' key or a list of features")
+
+    # Convert to NumPy array and reshape
+    X = np.array(features).reshape(1, -1)
+
+    # Apply scaling if available
+    if scaler:
+        X = scaler.transform(X)
+
+    probs = model.predict_proba(X)[0]
+
+    # 4. Get indices of the top 3 highest probabilities
+    top_3_indices = np.argsort(probs)[-3:][::-1]
+
+    # 5. Map indices to crop names and confidence
+    results = []
+    for i in top_3_indices:
+        results.append({
+            "crop": model.classes_[i],
+            "confidence": f"{probs[i] * 100:.2f}%"
+        })
+    
+    return results

@@ -4,9 +4,9 @@ import firebase_admin
 from groq import Groq
 from functools import wraps
 from firebase_admin import credentials, firestore
-from functions import get_universal_npk_ranks,fetch_api_data,get_weather_with_location
+from functions import get_universal_npk_ranks,fetch_api_data,get_weather_with_location,get_advanced_npk_ranks,predict_today
 from firebase_admin import credentials, firestore, auth
-import os,json
+import os,json,requests
 import jwt
 import datetime
 
@@ -192,7 +192,7 @@ def profile():
     try:
         # 1️⃣ Get token from header
         auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
+        if not auth_header or not auth_header.startswith("Bearer"):
             return jsonify({"error": "Token missing"}), 401
 
         token = auth_header.split(" ")[1]
@@ -256,6 +256,44 @@ def get_user_role():
         return jsonify({"error": "Invalid or expired token"}), 401
 
 
+@app.route("/cropRecommendation", methods=["POST", "OPTIONS"])
+def crop_recommendation():
+    # Handle the preflight request automatically
+    if request.method == "OPTIONS":
+        return "", 200
+    data = request.get_json()
+    lat = data.get("lat")
+    lon = data.get("lon")
+    # 1. Fetch NPK (Your custom function)
+    npkData = fetch_api_data(lat,lon)
+    print(npkData)
+    npk=get_universal_npk_ranks(npkData)
+    # 2. Fetch Weather
+    weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid=dd5dbf7b2cfed5c0a6c17be4d15aba12&units=metric"
+    weather_res = requests.get(weather_url)
+    url = "https://agriculturalhackathonserverhost-production.up.railway.app/rainTest"
+    # Data to send in the POST body
+    payload = {
+        "lat": lat,
+        "lon": lon
+    }
+    rainFall=requests.post(url, json=payload).json()
+    weather_data = weather_res.json()
+    data=[
+        npk["N_RANK"],
+        npk["P_RANK"],
+        npk["K_RANK"],
+        weather_data['main']['temp'],
+        weather_data['main']['humidity'],
+        rainFall["rainFall"],
+        weather_data['main']['pressure']
+    ]
+    today_result = predict_today(data)
+    # 3. Return Combined Data
+    return jsonify({
+        "message": "Data fetched successfully!",
+        "result":today_result,
+    })
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

@@ -243,39 +243,38 @@ useEffect(() => {
 
       {/* feedback */}
       <section className="px-5 py-6 md:px-20 max-w-7xl mx-auto">
-    <div className="bg-[#A3C475] rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 text-white shadow-xl flex justify-center items-center">
+        <div className="bg-[#A3C475] rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 text-white shadow-xl flex justify-center items-center">
+          <div className="w-full md:w-1/2 text-center">
+            <h2 className="text-xl md:text-5xl font-black leading-tight mb-3 md:mb-6">
+              Give Feedback
+            </h2>
 
-      <div className="w-full md:w-1/2 text-center">
-        <h2 className="text-xl md:text-5xl font-black leading-tight mb-3 md:mb-6">
-          Give Feedback
-        </h2>
+            <p className="text-xs md:text-lg font-medium mb-4 md:mb-8 text-[#3F865F]">
+              Share your ideas, problems, or suggestions to improve Smart
+              Farming.
+            </p>
 
-        <p className="text-xs md:text-lg font-medium mb-4 md:mb-8 text-[#3F865F]">
-          Share your ideas, problems, or suggestions to improve Smart Farming.
-        </p>
+            {/* INPUTS */}
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Your Name"
+                className="w-full px-4 py-3 rounded-xl text-black border-2 border-[#3F865F] focus:ring-2 focus:ring-[#3F865F]/20 outline-none"
+              />
 
-        {/* INPUTS */}
-        <div className="space-y-3">
-          <input
-            type="text"
-            placeholder="Your Name"
-            className="w-full px-4 py-3 rounded-xl text-black border-2 border-[#3F865F] focus:ring-2 focus:ring-[#3F865F]/20 outline-none"
-          />
+              <textarea
+                placeholder="Write your message..."
+                rows="3"
+                className="w-full px-4 py-3 rounded-xl text-black border-2 border-[#3F865F] focus:ring-2 focus:ring-[#3F865F]/20 outline-none"
+              />
 
-          <textarea
-            placeholder="Write your message..."
-            rows="3"
-            className="w-full px-4 py-3 rounded-xl text-black border-2 border-[#3F865F] focus:ring-2 focus:ring-[#3F865F]/20 outline-none"
-          />
-
-          <button className="bg-[#3F865F] text-white px-6 py-3 md:px-10 md:py-4 rounded-xl md:rounded-[2rem] font-bold shadow-lg hover:scale-105 transition-all">
-            Send Message
-          </button>
+              <button className="bg-[#3F865F] text-white px-6 py-3 md:px-10 md:py-4 rounded-xl md:rounded-[2rem] font-bold shadow-lg hover:scale-105 transition-all">
+                Send Message
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-
-    </div>
-  </section>
+      </section>
       {/* 4. FOOTER SECTION */}
       <footer className="mt-12 bg-white border-t border-gray-100 pt-12">
         <div className="max-w-7xl mx-auto px-6 md:px-20">
