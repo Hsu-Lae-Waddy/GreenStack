@@ -4,6 +4,9 @@ import {
   Bookmark, Sprout, Bot, LayoutList, Mail, Phone, Heart
 } from 'lucide-react';
 
+import Navbar from '../components/Navbar'
+import MobileNavbar from '../components/MobileNavbar'
+
 const HomePage = () => {
   return (
     /* Increased bottom padding (pb-40) for mobile to accommodate the floating navbar */
@@ -29,6 +32,7 @@ const HomePage = () => {
             </button>
         </div>
       </nav>
+      <Navbar name='Home'/>
 
       {/* 2. WEATHER SECTION */}
       <section className="px-5 pt-8 md:px-20 md:pt-12 max-w-7xl mx-auto">
@@ -150,6 +154,9 @@ const HomePage = () => {
             <NavIcon icon={<User />} />
         </div>
       </div>
+
+      <MobileNavbar/>
+
     </div>
   );
 };
