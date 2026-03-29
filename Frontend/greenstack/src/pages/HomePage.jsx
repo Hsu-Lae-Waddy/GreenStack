@@ -1,37 +1,52 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from "react-router-dom";
 import {
   Droplets, Wind, Sun, User, MapPin, ChevronRight,
   Bookmark, Sprout, Bot, LayoutList, Mail, Phone, Heart
 } from 'lucide-react';
-
 import Navbar from '../components/Navbar'
 import MobileNavbar from '../components/MobileNavbar'
 
 const HomePage = () => {
+  const [location, setLocation] = useState({ lat: null, lon: null });
+  const [locationError, setLocationError] = useState(null);
+  const navigate=useNavigate()
+    useEffect(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          console.log("User location:", latitude, longitude);
+          setLocation({ lat: latitude, lon: longitude });
+
+          // ✅ You can call your weather API here with lat/lon
+          // fetchWeather(latitude, longitude);
+        },
+        (error) => {
+          console.error("Error getting location:", error.message);
+          setLocationError(error.message);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      console.error("Geolocation not supported in this browser");
+      setLocationError("Geolocation not supported");
+    }
+  }, []);
+
+
+
+
   return (
     /* Increased bottom padding (pb-40) for mobile to accommodate the floating navbar */
     <div className="min-h-screen bg-[#FDFEFA] font-sans pb-40 md:pb-0">
 
       {/* 1. DESKTOP NAVBAR */}
-      <nav className="hidden md:flex sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-12 py-4 justify-between items-center shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="bg-[#3F865F] p-2 rounded-xl rotate-3">
-            <Sprout className="text-[#A3C475]" size={24} />
-          </div>
-          <span className="text-xl font-black text-[#3F865F] tracking-tight">GreenStack</span>
-        </div>
-        <div className="flex gap-10 font-bold text-sm uppercase tracking-widest text-[#3F865F]/60">
-          <a href="#" className="hover:text-[#3F865F] transition-colors">Market Price</a>
-          <a href="#" className="hover:text-[#3F865F] transition-colors">Crop Tips</a>
-          <a href="#" className="hover:text-[#3F865F] transition-colors">Feedback</a>
-        </div>
-        <div className="flex items-center gap-4">
-            <button className="p-2 bg-[#A3C475]/20 rounded-full text-[#3F865F] hover:scale-110 transition-transform"><Bot size={22}/></button>
-            <button className="flex items-center gap-2 bg-[#C5A677] text-white px-6 py-2.5 rounded-full font-bold shadow-lg shadow-[#C5A677]/30">
-                <User size={18}/> Profile
-            </button>
-        </div>
-      </nav>
+
       <Navbar name='Home'/>
 
       {/* 2. WEATHER SECTION */}
@@ -157,6 +172,7 @@ const HomePage = () => {
 
       <MobileNavbar/>
 
+      <MobileNavbar/>
     </div>
   );
 };

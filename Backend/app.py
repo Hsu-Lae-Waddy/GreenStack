@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import firebase_admin
 from groq import Groq
+from functools import wraps
 from firebase_admin import credentials, firestore
 from functions import get_universal_npk_ranks,fetch_api_data,get_weather_with_location
 from firebase_admin import credentials, firestore, auth
@@ -31,6 +32,13 @@ db = firestore.client()
 collection = db.collection("users")
 
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+# JWT verification decorator
+
+
+
+
+
 
 # UI Route
 @app.route("/")
@@ -76,9 +84,10 @@ def getNpkRank():
     return jsonify({"message":"Rank Got","response":res,"datas":data})
 
 
-@app.route("/get7DaysWeather",methods=["GET"])
+@app.route("/get7DaysWeather",methods=["POST"])
 def getWeather():
-    data=get_weather_with_location(16.830978800536716, 96.15757585188295)
+    data=request.json
+    data=get_weather_with_location(data['latitude'], data['longitude'])
     return jsonify({"message":"Weather Got","response":data})
 
 
@@ -122,78 +131,96 @@ def chat():
 
 
 # Signup
-@app.route("/signup", methods=["POST"])
-def signup():
+@app.route("/login", methods=["POST"])
+def auth():
     data = request.json
-    username = data.get("username")
+    username = data.get("name")
     phone = data.get("phone")
-    
 
     if not username or not phone:
         return jsonify({"error": "Missing fields"}), 400
 
-    # Check if phone or username already exists
-    existing_users = collection.where("phone", "==", phone).stream()
-    if any(existing_users):
-        return jsonify({"error": "Phone number already registered"}), 409
-
-    existing_usernames = collection.where("username", "==", username).stream()
-    if any(existing_usernames):
-        return jsonify({"error": "Username already taken"}), 409
-
-    # create JWT
-    token = jwt.encode({
-        "user": username,
-        "phone": phone,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-    }, SECRET_KEY, algorithm="HS256")
-
-    # Add new user
-    doc_ref = collection.add({
-        "username": username,
-        "phone": phone,
-        "created_at": firestore.SERVER_TIMESTAMP
-    })
-
-    return jsonify({
-        "message": "User registered",
-        "id": doc_ref[1].id,
-        "token": token
-    }), 201
-
-
-# Login
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.json
-    username = data.get("username")
-    phone = data.get("phone")
-
-    if not phone:
-        return jsonify({"error": "Missing fields"}), 400
-
-    # Check if phone exists
+    # Check if user exists by phone
     user_docs = collection.where("phone", "==", phone).stream()
     user_doc = next(user_docs, None)
 
-    if not user_doc:
-        return jsonify({"error": "User not found"}), 404
+    if user_doc:
+        # Phone exists → login
+        user_data = user_doc.to_dict()
+        if user_data.get("username") != username:
+            return jsonify({"error": "Phone exists but username mismatch"}), 409
 
-    user_data = user_doc.to_dict()
+        # Generate JWT
+        token = jwt.encode({
+            "user": username,
+            "phone": phone,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, SECRET_KEY, algorithm="HS256")
+        user_data["id"] = user_doc.id
+        return jsonify({
+            "message": "Login successful",
+            "user": user_data,
+            "token": token
+        }), 200
 
-    # create JWT
-    token = jwt.encode({
-        "user": username,
-        "phone": phone,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-    }, SECRET_KEY, algorithm="HS256")
+    else:
+        # Phone does not exist → register
+        token = jwt.encode({
+            "user": username,
+            "phone": phone,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
+        }, SECRET_KEY, algorithm="HS256")
 
-    
+        # Add new user
+        doc_ref = collection.add({
+            "username": username,
+            "phone": phone,
+            "created_at": firestore.SERVER_TIMESTAMP
+        })
 
-    return jsonify({
-        "message": "Login successful",
-        "user": user_data
-    }), 200
+        return jsonify({
+            "message": "User registered",
+            "id": doc_ref[1].id,
+            "token": token
+        }), 201
+
+
+
+@app.route("/profile", methods=["POST"])
+def profile():
+    try:
+        # 1️⃣ Get token from header
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({"error": "Token missing"}), 401
+
+        token = auth_header.split(" ")[1]
+        print(token)
+        # # 2️⃣ Decode JWT to get user ID
+        # decoded = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        # user_id = decoded.get("id")  # <-- store document ID in JWT during login/signup
+        # if not user_id:
+        #     return jsonify({"error": "User ID missing in token"}), 400
+
+        # 3️⃣ Fetch Firestore document by ID
+        doc_ref = collection.document(token)
+        doc = doc_ref.get()
+        if not doc.exists:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = doc.to_dict()
+        user_data["id"] = doc.id
+
+        return jsonify({"user": user_data}), 200
+
+    except jwt.ExpiredSignatureError:
+        return jsonify({"error": "Token expired"}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({"error": "Invalid token"}), 401
+    except Exception as e:
+        print("Error in /profile:", e)
+        return jsonify({"error": "Internal server error"}), 500
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)

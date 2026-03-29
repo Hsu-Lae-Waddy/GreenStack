@@ -1,15 +1,34 @@
 import React, { useState } from 'react';
 import { User, Phone } from 'lucide-react';
 import translations from './translations';
+import { useNavigate } from "react-router-dom";
 
 const   LoginPage = () => {
   // Set default language to 'mm' (Myanmar)
   const [lang, setLang] = useState('mm');
   const [formData, setFormData] = useState({ name: '', phone: '' });
-
-  // Shortcut to access current language strings
   const t = translations[lang];
+  const navigate=useNavigate()
+  const serverRoute="http://127.0.0.1:8080"
+  const login = async (data) => {
+    const response = await fetch(`${serverRoute}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    })
+    const result = await response.json();
+    console.log(result);
+    if(result.message=="Login successful"){
+      localStorage.setItem("token", result.user.id);
+    }else if (result.message=="User registered"){
+      localStorage.setItem("token", result.id);
+    }
+    console.log("Token stored in localStorage:", localStorage.getItem("token"));
+    navigate('/')
 
+  }
   return (
     <div className="min-h-screen bg-[#F9FBF7] flex items-center justify-center p-6 font-sans">
       {/* Background Decorative Elements */}
@@ -78,6 +97,10 @@ const   LoginPage = () => {
             {/* Submit Button */}
             <button
               type="submit"
+              onClick={(e) => {
+                e.preventDefault();
+                login(formData);
+              }}
               className="w-full bg-[#3F865F] hover:bg-[#2d6346] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#3F865F]/30 transition-all hover:scale-[1.02] active:scale-95 mt-4"
             >
               {t.loginBtn}

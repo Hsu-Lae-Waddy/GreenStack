@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { Sprout, Bot, User } from 'lucide-react';
-
+import { useNavigate } from "react-router-dom";
 const Navbar = (props) => {
   // 1. Create a state to track the active link
   const [active, setActive] = useState(props.name);
 
   // Define your links in an array to make the code cleaner
   const navLinks = [
-    { name: 'Home', href: 'HomePage.jsx' },
-    { name: 'Market Price', href: '#' },
-    { name: 'Crop Tips', href: '#' },
+    { name: 'Home', href: '/' },
+    { name: 'Market Price', href: 'marketPrice' },
+    { name: 'Crop Tips', href: '' },
     { name: 'Feedback', href: '#' },
   ];
-
+  const navigate = useNavigate();
   return (
     <nav className="hidden md:flex sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-12 py-4 justify-between items-center shadow-sm">
 
@@ -62,7 +62,7 @@ const Navbar = (props) => {
 
         {/* Profile Button */}
         <button
-          onClick={() => setActive('Profile')}
+          onClick={() => {navigate('/profile'); setActive('Profile');}}
           className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-bold shadow-lg transition-all duration-300 ${
             active === 'Profile'
               ? 'bg-[#3F865F] text-white shadow-[#3F865F]/30' // Active style (Deep Green)
