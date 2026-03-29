@@ -86,17 +86,18 @@ profile: {
       benchmarks: "စံသတ်မှတ်ထားသော ပေါက်ဈေးများ",
       avg: "ပျမ်းမျှ",
       currency: "ကျပ်",
-      timeAgo: "၂ နာရီခန့်က",
       priceLabel: "ဈေးနှုန်း",
+      callBroker: "ဖုန်းခေါ်ဆိုရန်",
       trusted: "ယုံကြည်ရသော",
-      callBroker: "ပွဲစားထံ ဖုန်းဆက်ရန်",
+      timeAgo: "၂ နာရီခန့်က",
       noResults: "ရှာဖွေမှုရလဒ် မရှိပါ -",
+      clearFilters: "မူလအတိုင်းပြန်ထားပါ",
       categories: {
         all: "အားလုံး",
-        grains: "သီးနှံ/နှံစား",
-        vegetables: "ဟင်းသီးဟင်းရွက်",
-        fruits: "သစ်သီးဝလံ",
-        others: "အခြား"
+        paddy: "စပါး",
+        rice: "ဆန်",
+        beans: "ပဲမျိုးစုံ",
+        corn: "ပြောင်းဖူး"
       }
     },
 
@@ -112,6 +113,20 @@ profile: {
         welcome: "မင်္ဂလာပါ။ Green Assistant မှ ကြိုဆိုပါတယ်။ စိုက်ပျိုးရေးနှင့်ပတ်သက်သည်များကို မေးမြန်းနိုင်ပါသည်။",
         placeholder: "မေးခွန်းတစ်ခုခု မေးမြန်းပါ...",
       },
+
+     
+    dataLabels: {
+      paddy: "စပါး",
+      rice: "ဆန်",
+      beans: "ပဲမျိုးစုံ",
+      corn: "ပြောင်းဖူး",
+      unitBaskets: "တင်း ၁၀၀",
+      unitBag: "တစ်အိတ်",
+      unitTon: "တစ်တန်",
+      unitViss: "တစ်ပိဿာ",
+      newHarvest: "မိုးသီးနှံအသစ်",
+      exportQuality: "ပို့ကုန်အဆင့်မီ"
+    },
       tips: {
         title: "သီးနှံအကြံပြုချက်များ",
         subtitle: "မြေအမျိုးအစားပေါ် အခြေခံသည်",
@@ -273,6 +288,19 @@ profile: {
       logout: "Logout"
     },
 
+     dataLabels: {
+      paddy: "Paddy",
+      rice: "Rice",
+      beans: "Beans",
+      corn: "Corn",
+      unitBaskets: "100 Baskets",
+      unitBag: "per Bag",
+      unitTon: "per Ton",
+      unitViss: "per Viss",
+      newHarvest: "New Harvest",
+      exportQuality: "Export Quality"
+    },
+
     weather: {
       location: "Hmawbi, Yangon",
       status: "Mostly Sunny",
@@ -294,18 +322,20 @@ profile: {
       benchmarks: "Standard Market Benchmarks",
       avg: "Avg",
       currency: "MMK",
-      timeAgo: "2h ago",
       priceLabel: "Price",
-      trusted: "Trusted",
       callBroker: "Call Broker",
+      trusted: "Trusted",
+      timeAgo: "2h ago",
       noResults: "No results found for",
+      clearFilters: "Clear Filters",
       categories: {
         all: "All",
-        grains: "Grains",
-        vegetables: "Vegetables",
-        fruits: "Fruits",
-        others: "Others"
-      }},
+        paddy: "Paddy",
+        rice: "Rice",
+        beans: "Beans",
+        corn: "Corn"
+      }
+    },
 //Navbar
     home: "Home",
     marketPrice: "Market Price",
@@ -353,6 +383,8 @@ profile: {
       highlightedCrops: "Lettuce or Broccoli",
       userQuestion: "What's best for my soil?",
     },
+
+    
 
     marketSection: {
       paddyPrice: "Paddy Price",
