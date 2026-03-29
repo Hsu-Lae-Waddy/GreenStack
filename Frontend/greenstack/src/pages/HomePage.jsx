@@ -1,6 +1,7 @@
 
 import React,{useState} from "react";
 import MarketPrice from "./MarketPrice";
+import { useLanguage } from '../context/LanguageContext'; 
 
 import {
   Droplets,
@@ -22,9 +23,11 @@ import translations from './translations';
 
 const HomePage = () => {
 
-  const [lang, setLang] = useState('mm');
+  const { lang } = useLanguage(); 
+  
   // Shortcut to access current language strings
   const t = translations[lang];
+  
   const weeklyForecast = [
     { day: "Today", temp: "31", icon: <Sun className="text-[#A3C475]" /> },
     { day: "Mon", temp: "29", icon: <CloudRain className="text-blue-300" /> },
@@ -42,122 +45,107 @@ const HomePage = () => {
       <Navbar name="Home" />
       {/* 2. WEATHER SECTION */}
       <section className="px-5 pt-8 md:px-20 md:pt-12 max-w-7xl mx-auto">
-        <div className="bg-[#3F865F] rounded-[2.5rem] p-6 md:p-10 text-white relative overflow-hidden shadow-2xl shadow-[#3F865F]/20">
-          {/* Background Decoration */}
-          <div className="absolute -top-10 -right-10 w-64 h-64 bg-[#A3C475] rounded-full blur-[100px] opacity-20"></div>
+  <div className="bg-[#3F865F] rounded-[2.5rem] p-6 md:p-10 text-white relative overflow-hidden shadow-2xl shadow-[#3F865F]/20">
+    
+    <div className="absolute -top-10 -right-10 w-64 h-64 bg-[#A3C475] rounded-full blur-[100px] opacity-20"></div>
 
-          {/* 1. TOP HEADER: Current Status */}
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 border-b border-white/10 pb-8">
-            <div>
-              <div className="flex items-center gap-2 bg-white/10 w-fit px-3 py-1 rounded-full border border-white/10 mb-3">
-                <MapPin size={14} className="text-[#A3C475]" />
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  Hmawbi, Yangon
-                </span>
-              </div>
-              <div className="flex items-end gap-4">
-                <h1 className="text-7xl md:text-8xl font-black tracking-tighter">
-                  31°C
-                </h1>
-                <div className="mb-2">
-                  <p className="text-xl md:text-3xl font-black text-[#A3C475]">
-                    Mostly Sunny
-                  </p>
-                  <p className="text-xs opacity-70 font-bold uppercase tracking-wider">
-                    Sunday, 24 March
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="hidden md:block bg-white/5 p-6 rounded-3xl border border-white/10 backdrop-blur-md">
-              <p className="text-[10px] font-black text-[#A3C475] uppercase tracking-widest mb-2">
-                {t.farmersAdvice}
-              </p>
-              <p className="text-sm font-medium italic opacity-90 max-w-[200px]">
-                "High humidity expected. Check for fungal growth on paddy
-                stalks."
-              </p>
-            </div>
-          </div>
-
-          {/* 2. GRID: Detailed Metrics (All requested fields) */}
-          {/* 2. SLIDER: Detailed Metrics (Slide left/right on mobile, Grid on desktop) */}
-          <div className="relative z-10 mb-10">
-            <div className="flex md:grid md:grid-cols-4 lg:grid-cols-7 overflow-x-auto md:overflow-visible no-scrollbar gap-4 pb-4 md:pb-0">
-              {/* Each WeatherMetric now has flex-shrink-0 and a min-width for mobile */}
-              <WeatherMetric icon={<Droplets />} label="Humidity" value="65%" />
-              <WeatherMetric
-                icon={<CircleGauge />}
-                label="Pressure"
-                value="1012 hPa"
-              />
-              <WeatherMetric
-                icon={<CloudRain />}
-                label="Rainfall"
-                value="0.5 mm"
-              />
-              <WeatherMetric
-                icon={<Thermometer />}
-                label="Feels Like"
-                value="34 °C"
-              />
-              <WeatherMetric icon={<Zap />} label="UV Index" value="8 index" />
-              <WeatherMetric
-                icon={<Compass />}
-                label="Wind Dir"
-                value="240 °"
-              />
-              <WeatherMetric icon={<Wind />} label="Wind Spd" value="12 km/h" />
-            </div>
-
-            {/* Optional: Small visual cue for mobile swipe */}
-            <div className="flex md:hidden justify-center gap-1 mt-1 opacity-40">
-              <div className="w-8 h-1 bg-white/30 rounded-full"></div>
-              <div className="w-2 h-1 bg-white/10 rounded-full"></div>
-            </div>
-          </div>
-
-          {/* 3. SCROLLER: Next 6 Days Forecast */}
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-4">
-              <CalendarDays size={18} className="text-[#A3C475]" />
-              <h3 className="text-sm font-black uppercase tracking-widest">
-                7-Day Forecast
-              </h3>
-            </div>
-
-            <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-              {weeklyForecast.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`flex-shrink-0 w-24 md:w-32 p-4 rounded-3xl text-center border transition-all ${
-                    idx === 0
-                      ? "bg-white text-[#3F865F] border-white shadow-xl"
-                      : "bg-white/5 border-white/10 hover:bg-white/10"
-                  }`}
-                >
-                  <p
-                    className={`text-[10px] font-black uppercase mb-3 ${
-                      idx === 0 ? "text-[#C5A677]" : "opacity-60"
-                    }`}
-                  >
-                    {item.day}
-                  </p>
-                  <div className="flex justify-center mb-3">
-                    {React.cloneElement(item.icon, {
-                      size: idx === 0 ? 32 : 24,
-                    })}
-                  </div>
-                  <p className="text-xl font-black tracking-tight">
-                    {item.temp}°
-                  </p>
-                </div>
-              ))}
-            </div>
+    {/* 1. TOP HEADER */}
+    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-10 border-b border-white/10 pb-8">
+      <div>
+        <div className="flex items-center gap-2 bg-white/10 w-fit px-3 py-1 rounded-full border border-white/10 mb-3">
+          <MapPin size={14} className="text-[#A3C475]" />
+          <span className="text-[10px] font-black uppercase tracking-widest">
+            {t.weather.location}
+          </span>
+        </div>
+        <div className="flex items-end gap-4">
+          <h1 className="text-7xl md:text-8xl font-black tracking-tighter">
+            31°C
+          </h1>
+          <div className="mb-2">
+            <p className="text-xl md:text-3xl font-black text-[#A3C475]">
+              {t.weather.status}
+            </p>
+            <p className="text-xs opacity-70 font-bold uppercase tracking-wider">
+              {t.weather.date}
+            </p>
           </div>
         </div>
-      </section>
+      </div>
+    </div>
+
+    {/* 2. GRID: Detailed Metrics */}
+    <div className="relative z-10 mb-10">
+      <div className="flex md:grid md:grid-cols-4 lg:grid-cols-7 overflow-x-auto md:overflow-visible no-scrollbar gap-4 pb-4 md:pb-0">
+        <WeatherMetric icon={<Droplets />} label={t.weather.humidity} value="65%" />
+        <WeatherMetric
+          icon={<CircleGauge />}
+          label={t.weather.pressure}
+          value="1012 hPa"
+        />
+        <WeatherMetric
+          icon={<CloudRain />}
+          label={t.weather.rainfall}
+          value="0.5 mm"
+        />
+        <WeatherMetric
+          icon={<Thermometer />}
+          label={t.weather.feelsLike}
+          value="34 °C"
+        />
+        <WeatherMetric 
+          icon={<Zap />} 
+          label={t.weather.uvIndex} 
+          value={`8 ${t.weather.unitIndex}`} 
+        />
+        <WeatherMetric
+          icon={<Compass />}
+          label={t.weather.windDir}
+          value="240 °"
+        />
+        <WeatherMetric 
+          icon={<Wind />} 
+          label={t.weather.windSpd} 
+          value={`12 ${t.weather.unitSpeed}`} 
+        />
+      </div>
+    </div>
+
+    {/* 3. SCROLLER: Forecast */}
+    <div className="relative z-10">
+      <div className="flex items-center gap-2 mb-4">
+        <CalendarDays size={18} className="text-[#A3C475]" />
+        <h3 className="text-sm font-black uppercase tracking-widest">
+          {t.weather.forecastTitle}
+        </h3>
+      </div>
+
+      <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+        {weeklyForecast.map((item, idx) => (
+          <div
+            key={idx}
+            className={`flex-shrink-0 w-24 md:w-32 p-4 rounded-3xl text-center border transition-all ${
+              idx === 0
+                ? "bg-white text-[#3F865F] border-white shadow-xl"
+                : "bg-white/5 border-white/10 hover:bg-white/10"
+            }`}
+          >
+            <p className={`text-[10px] font-black uppercase mb-3 ${idx === 0 ? "text-[#C5A677]" : "opacity-60"}`}>
+              {/* Note: You'll need to translate weeklyForecast days (Mon, Tue) as well */}
+              {item.day}
+            </p>
+            <div className="flex justify-center mb-3">
+              {React.cloneElement(item.icon, { size: idx === 0 ? 32 : 24 })}
+            </div>
+            <p className="text-xl font-black tracking-tight">
+              {item.temp}°
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
 
       <MarketPrice/>
       

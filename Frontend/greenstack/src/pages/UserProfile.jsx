@@ -19,15 +19,18 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import translations from './translations';
+import { useLanguage } from '../context/LanguageContext'; 
+
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("Overview");
+  const { lang } = useLanguage(); 
 
     const [isSelectingRole, setIsSelectingRole] = useState(false);
     const [selectedRole, setSelectedRole] = useState(null);
   
 // Set default language to 'mm' (Myanmar)
-  const [lang, setLang] = useState('mm');
+ 
 // Shortcut to access current language strings
   const t = translations[lang];
   // Farmer Mock Data
@@ -113,7 +116,7 @@ const UserProfile = () => {
             </div>
 
             {/* Quick Dashboard Badges (Inside Header) */}
-            <div className="flex gap-4 md:mb-2">
+            {/* <div className="flex gap-4 md:mb-2">
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-3xl text-center min-w-[90px] shadow-lg">
                 <p className="text-[10px] text-[#A3C475] font-black uppercase tracking-[0.2em] mb-1">
                   {t.crops}
@@ -126,7 +129,7 @@ const UserProfile = () => {
                 </p>
                 <p className="text-xl font-black text-white">142</p>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </header>

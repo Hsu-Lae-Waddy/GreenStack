@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { User, Phone } from 'lucide-react';
 import translations from './translations';
+import { useLanguage } from '../context/LanguageContext'; 
 
 const   LoginPage = () => {
   // Set default language to 'mm' (Myanmar)
-  const [lang, setLang] = useState('mm');
+  const { lang, setLang } = useLanguage(); 
   const [formData, setFormData] = useState({ name: '', phone: '' });
 
   // Shortcut to access current language strings
@@ -37,9 +38,7 @@ const   LoginPage = () => {
             <h1 className="text-3xl font-black text-[#3F865F] tracking-tight">
                 {t.welcome}
             </h1>
-{/*             <p className="text-[#C5A677] font-semibold mt-1"> */}
-{/*                 {t.subtitle} */}
-{/*             </p> */}
+
           </div>
 
           <form className="space-y-5">
