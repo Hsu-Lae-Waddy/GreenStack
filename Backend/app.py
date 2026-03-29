@@ -96,7 +96,7 @@ def getWeather():
 def chat():
     client = Groq(api_key=SECRET_KEY)
     data = request.get_json()
-    message = data.get("message")
+    message = data.get("question")
     system_prompt = (
     "You are a climate-smart farming assistant for Myanmar farmers. "
     "Guidelines: Use formal, a little long (not boring long),perfect  and polite Burmese (ဗမာစာ) answers. "

@@ -1,6 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import React ,{ useState,useEffect } from "react";
 import {
   Droplets,
   Wind,
@@ -22,57 +20,83 @@ import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 
 const HomePage = () => {
-  const [location, setLocation] = useState({ lat: null, lon: null });
-  const [locationError, setLocationError] = useState(null);
-  const navigate=useNavigate()
-    useEffect(() => {
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          console.log("User location:", latitude, longitude);
-          setLocation({ lat: latitude, lon: longitude });
 
-          // ✅ You can call your weather API here with lat/lon
-          // fetchWeather(latitude, longitude);
-        },
-        (error) => {
-          console.error("Error getting location:", error.message);
-          setLocationError(error.message);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0,
-        }
-      );
-    } else {
-      console.error("Geolocation not supported in this browser");
-      setLocationError("Geolocation not supported");
+  const route="http://127.0.0.1:8080"
+  const token=localStorage.getItem("token")
+  
+
+  // 1. Initialize with an empty array so .map() doesn't fail on first render
+const [farmer, setFarmer] = useState({ weeklyForecast: [] });
+
+const userLocation = async (latitude, longitude) => {
+  const token = localStorage.getItem("token");
+  try {
+    const response = await fetch(`${route}/get7DaysWeather`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}` 
+      },
+      body: JSON.stringify({ latitude, longitude })
+    });
+
+    const data = await response.json();
+    
+    if (data.response?.forecast) {
+      const dynamicForecast = data.response.forecast.map((item, index) => ({
+        day: index === 0 ? "Today" : new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
+        temp: Math.round(item.temp_max).toString(),
+        humidity:Math.round(item.humidity).toString(),
+        rainFall:(item.rainfall).toString(),
+        pressure:item.pressure,
+        uv:item.uv_index,
+        windDir:item.wind_direction,
+        wind_speed:item.wind_speed,
+        icon: item.rainfall > 0.1 ? <CloudRain className="text-blue-300" /> : <Sun className="text-[#A3C475]" />
+      }));
+
+      setFarmer((prevFarmer) => ({
+        ...prevFarmer,
+        location: data.response.location.city 
+          ? `${data.response.location.city}, ${data.response.location.region}` 
+          : prevFarmer.location,
+        weeklyForecast: dynamicForecast 
+      }));
     }
-  }, []);
+  } catch (error) {
+    console.error("Error fetching weather:", error);
+  }
+};
 
+// 2. Fixed useEffect with empty dependency array
+useEffect(() => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        userLocation(latitude, longitude);
+      },
+      (error) => {
+        console.error("Location access denied or failed:", error);
+        // Fallback: call with default coordinates if user blocks location
+        userLocation(16.8661, 96.1951); 
+      }
+    );
+  }
+}, []); // <--- CRITICAL: Added empty array here
 
-
-  const weeklyForecast = [
-    { day: "Today", temp: "31", icon: <Sun className="text-[#A3C475]" /> },
-    { day: "Mon", temp: "29", icon: <CloudRain className="text-blue-300" /> },
-    { day: "Tue", temp: "30", icon: <Sun className="text-[#A3C475]" /> },
-    { day: "Wed", temp: "28", icon: <CloudRain className="text-blue-300" /> },
-    { day: "Thu", temp: "32", icon: <Sun className="text-[#A3C475]" /> },
-    { day: "Fri", temp: "31", icon: <Sun className="text-[#A3C475]" /> },
-    { day: "Sat", temp: "30", icon: <Sun className="text-[#A3C475]" /> },
-  ];
-
+// 3. Separate effect to log state changes (for debugging only)
+useEffect(() => {
+  if (farmer.weeklyForecast?.length > 0) {
+    console.log("Updated Farmer State:", farmer);
+  }
+}, [farmer]);
 
   return (
     /* Increased bottom padding (pb-40) for mobile to accommodate the floating navbar */
     <div className="min-h-screen bg-[#FDFEFA] font-sans pb-40 md:pb-0">
       {/* 1. DESKTOP NAVBAR */}
-
-
-      <Navbar name='Home'/>
-
+      <Navbar name="Home" />
       {/* 2. WEATHER SECTION */}
       <section className="px-5 pt-8 md:px-20 md:pt-12 max-w-7xl mx-auto">
         <div className="bg-[#3F865F] rounded-[2.5rem] p-6 md:p-10 text-white relative overflow-hidden shadow-2xl shadow-[#3F865F]/20">
@@ -85,12 +109,12 @@ const HomePage = () => {
               <div className="flex items-center gap-2 bg-white/10 w-fit px-3 py-1 rounded-full border border-white/10 mb-3">
                 <MapPin size={14} className="text-[#A3C475]" />
                 <span className="text-[10px] font-black uppercase tracking-widest">
-                  Hmawbi, Yangon
+                  {farmer.location}
                 </span>
               </div>
               <div className="flex items-end gap-4">
                 <h1 className="text-7xl md:text-8xl font-black tracking-tighter">
-                  31°C
+                  {farmer.weeklyForecast[0]?.temp || "--"}°
                 </h1>
                 <div className="mb-2">
                   <p className="text-xl md:text-3xl font-black text-[#A3C475]">
@@ -119,16 +143,16 @@ const HomePage = () => {
           <div className="relative z-10 mb-10">
             <div className="flex md:grid md:grid-cols-4 lg:grid-cols-7 overflow-x-auto md:overflow-visible no-scrollbar gap-4 pb-4 md:pb-0">
               {/* Each WeatherMetric now has flex-shrink-0 and a min-width for mobile */}
-              <WeatherMetric icon={<Droplets />} label="Humidity" value="65%" />
+              <WeatherMetric icon={<Droplets />} label="Humidity" value={farmer.weeklyForecast[0]?.humidity+"%"} />
               <WeatherMetric
                 icon={<CircleGauge />}
                 label="Pressure"
-                value="1012 hPa"
+                value={farmer.weeklyForecast[0]?.pressure + " hPa"}
               />
               <WeatherMetric
                 icon={<CloudRain />}
                 label="Rainfall"
-                value="0.5 mm"
+                value={farmer.weeklyForecast[0]?.rainFall + " mm"}
               />
               <WeatherMetric
                 icon={<Thermometer />}
@@ -139,9 +163,9 @@ const HomePage = () => {
               <WeatherMetric
                 icon={<Compass />}
                 label="Wind Dir"
-                value="240 °"
-              />
-              <WeatherMetric icon={<Wind />} label="Wind Spd" value="12 km/h" />
+                value={farmer.weeklyForecast[0]?.wind_direction + " °"}
+         />
+              <WeatherMetric icon={<Wind />} label="Wind Spd" value={farmer.weeklyForecast[0]?.wind_speed + " km/h"} />
             </div>
 
             {/* Optional: Small visual cue for mobile swipe */}
@@ -161,7 +185,7 @@ const HomePage = () => {
             </div>
 
             <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
-              {weeklyForecast.map((item, idx) => (
+              {farmer.weeklyForecast.map((item, idx) => (
                 <div
                   key={idx}
                   className={`flex-shrink-0 w-24 md:w-32 p-4 rounded-3xl text-center border transition-all ${
@@ -216,6 +240,42 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* feedback */}
+      <section className="px-5 py-6 md:px-20 max-w-7xl mx-auto">
+    <div className="bg-[#A3C475] rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 text-white shadow-xl flex justify-center items-center">
+
+      <div className="w-full md:w-1/2 text-center">
+        <h2 className="text-xl md:text-5xl font-black leading-tight mb-3 md:mb-6">
+          Give Feedback
+        </h2>
+
+        <p className="text-xs md:text-lg font-medium mb-4 md:mb-8 text-[#3F865F]">
+          Share your ideas, problems, or suggestions to improve Smart Farming.
+        </p>
+
+        {/* INPUTS */}
+        <div className="space-y-3">
+          <input
+            type="text"
+            placeholder="Your Name"
+            className="w-full px-4 py-3 rounded-xl text-black border-2 border-[#3F865F] focus:ring-2 focus:ring-[#3F865F]/20 outline-none"
+          />
+
+          <textarea
+            placeholder="Write your message..."
+            rows="3"
+            className="w-full px-4 py-3 rounded-xl text-black border-2 border-[#3F865F] focus:ring-2 focus:ring-[#3F865F]/20 outline-none"
+          />
+
+          <button className="bg-[#3F865F] text-white px-6 py-3 md:px-10 md:py-4 rounded-xl md:rounded-[2rem] font-bold shadow-lg hover:scale-105 transition-all">
+            Send Message
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
       {/* 4. FOOTER SECTION */}
       <footer className="mt-12 bg-white border-t border-gray-100 pt-12">
         <div className="max-w-7xl mx-auto px-6 md:px-20">
@@ -298,26 +358,7 @@ const HomePage = () => {
         </div>
       </footer>
       {/* 5. MOBILE FLOATING NOTCH NAVBAR (Fixed Bottom) */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full px-4 pb-4 z-50">
-        <div className="relative bg-white h-20 rounded-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.12)] flex items-center justify-around px-2 border border-gray-100">
-            <NavIcon icon={<LayoutList />} active />
-            <NavIcon icon={<Sprout />} />
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2">
-                <div className="w-20 h-20 bg-[#FDFEFA] rounded-full flex items-center justify-center">
-                    <button className="w-16 h-16 bg-[#3F865F] rounded-full flex items-center justify-center text-white shadow-xl shadow-[#3F865F]/40 border-4 border-white active:scale-90 transition-transform">
-                        <Bot size={32} />
-                    </button>
-                </div>
-            </div>
-            <div className="w-16 h-1"></div>
-            <NavIcon icon={<Bookmark />} />
-            <NavIcon icon={<User />} />
-        </div>
-      </div>
-
-      <MobileNavbar/>
-
-      
+      <MobileNavbar />
     </div>
   );
 };
