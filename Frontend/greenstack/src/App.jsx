@@ -2,6 +2,7 @@ import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import MarketPrice from './pages/MarketPrice'
 import UserProfile from './pages/UserProfile'
+import Test from './pages/Test'
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
@@ -14,7 +15,7 @@ function App() {
         {/* <Route path="/" element={<LandingPage />} /> */}
         <Route path="/" element={<HomePage />} />
         <Route path="/profile" element={<UserProfile />} />
-
+        <Route path="/test" element={<Test />} />
       </Routes>
     </Router>
 

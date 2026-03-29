@@ -154,6 +154,7 @@ def auth():
         token = jwt.encode({
             "user": username,
             "phone": phone,
+            "role":"",
             "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
         }, SECRET_KEY, algorithm="HS256")
         user_data["id"] = user_doc.id
@@ -220,6 +221,40 @@ def profile():
     except Exception as e:
         print("Error in /profile:", e)
         return jsonify({"error": "Internal server error"}), 500
+
+
+
+
+@app.route("/get-user-role", methods=["POST"])
+def get_user_role():
+    auth_header = request.headers.get("Authorization")
+    
+    if not auth_header or not auth_header.startswith("Bearer "):
+        return jsonify({"error": "Token missing or malformed"}), 401
+
+    token = auth_header.split(" ")[1]
+
+    try:
+        # 1️⃣ Decode the token to get the actual User ID (uid)
+        # If using Firebase Admin SDK:
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token['uid']
+        
+        # 2️⃣ Fetch the document using the UID, not the token string
+        doc_ref = db.collection("users").document(uid).get()
+        
+        if not doc_ref.exists:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = doc_ref.to_dict()
+        role = user_data.get("role", "farmer") # Get role from dict
+
+        return jsonify({"role": role}), 200
+
+    except Exception as e:
+        print("Auth Error:", e)
+        return jsonify({"error": "Invalid or expired token"}), 401
+
 
 
 if __name__ == "__main__":
