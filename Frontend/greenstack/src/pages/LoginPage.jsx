@@ -26,7 +26,7 @@ const   LoginPage = () => {
       localStorage.setItem("token", result.id);
     }
     console.log("Token stored in localStorage:", localStorage.getItem("token"));
-    navigate('/')
+    navigate('/home')
 
   }
   return (

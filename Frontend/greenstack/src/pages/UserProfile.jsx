@@ -17,12 +17,13 @@ import {
   Edit2, 
  Briefcase, CheckCircle2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import translations from './translations';
 
 const UserProfile = () => {
   const [activeTab, setActiveTab] = useState("Overview");
-
+  const navigate=useNavigate();
     const [isSelectingRole, setIsSelectingRole] = useState(false);
     const [selectedRole, setSelectedRole] = useState(null);
   
@@ -380,7 +381,14 @@ useEffect( () => {
             </div>
           )}
 
-          <ActionButton icon={<LogOut size={18} />} label={t.logout} danger />
+          <ActionButton icon={<LogOut size={18} 
+          onClick={() => {
+          localStorage.removeItem("token");
+          // Also clear other user data if you have any
+          localStorage.removeItem("userRole"); 
+          navigate('/');
+        }} />} 
+          label={t.logout} danger />
         </div>
       </div>
       

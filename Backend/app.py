@@ -12,7 +12,13 @@ import datetime
 
 
 app = Flask(__name__)
-SECRET_KEY = "c2f9a7d4e8b1c3f6a9d0e5f7b2c4a8d1e6f9b3c7a2d5e8f1"
+from dotenv import load_dotenv
+import os
+
+load_dotenv() # This loads the variables from .env
+
+# Now you can safely get the key
+SECRET_KEY = os.getenv("GROQ_API_KEY")
 
 # Firebase init
 # Load from env
@@ -20,8 +26,8 @@ SECRET_KEY = "c2f9a7d4e8b1c3f6a9d0e5f7b2c4a8d1e6f9b3c7a2d5e8f1"
 # for production
 # firebase_key = os.environ.get("FIREBASE_KEY")
 # firebase_dict = json.loads(firebase_key)
-# SECRET_KEY = os.environ.get("GROQ_API_KEY")
-SECRET_KEY="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"  # groq key for chat bot
+# # SECRET_KEY = os.environ.get("GROQ_API_KEY")
+# SECRET_KEY="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"  # groq key for chat bot
 
 # firbase initialization
 firebase_dict = "./firebase-auth.json"

@@ -1,16 +1,14 @@
 
+
 import React ,{ useState,useEffect } from "react";
 import MarketPrice from "./MarketPrice";
+
 import {
   Droplets,
   Wind,
   Sun,
   MapPin,
-  ChevronRight,
-  Sprout,
-  Mail,
-  Phone,
-  Heart,
+
   CloudRain,
   Thermometer,
   CircleGauge,

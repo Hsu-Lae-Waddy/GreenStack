@@ -1,4 +1,5 @@
-import React from "react";
+import React  from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronRight,
   Sprout,
@@ -16,7 +17,17 @@ import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
 
 const LandingPage = () => {
-  
+  const navigate=useNavigate()
+  const handleUser = async()=>{
+
+    const token = localStorage.getItem("token")
+    if (token){
+      navigate('/home')
+    }else{
+      navigate('/login')
+    }
+
+  }
   return (
     /* Increased bottom padding (pb-40) for mobile to accommodate the floating navbar */
     <div className="min-h-screen bg-[#FDFEFA] font-sans pb-40 md:pb-0">
@@ -35,7 +46,7 @@ const LandingPage = () => {
             <p className="text-[10px] md:text-lg font-medium opacity-90 mb-4 md:mb-10 max-w-[200px] md:max-w-sm">
               Daily expert tips for your specific local crops.
             </p>
-            <button className="bg-[#3F865F] text-white px-4 py-2 md:px-10 md:py-5 rounded-xl md:rounded-[2rem] font-bold md:font-black text-[10px] md:text-lg shadow-lg flex items-center gap-2">
+            <button onClick={handleUser} className="bg-[#3F865F] text-white px-4 py-2 md:px-10 md:py-5 rounded-xl md:rounded-[2rem] font-bold md:font-black text-[10px] md:text-lg shadow-lg flex items-center gap-2">
               Start Now <ChevronRight size={14} />
             </button>
           </div>
