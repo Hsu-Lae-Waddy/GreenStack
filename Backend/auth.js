@@ -1,7 +1,7 @@
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 // Signup
-async function signup(username, phone, password) {
+async function signup(username, phone) {
   const res = await fetch("http://127.0.0.1:5000/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
