@@ -3,7 +3,7 @@ from flask_cors import CORS
 import firebase_admin
 from groq import Groq
 from firebase_admin import credentials, firestore
-from functions import get_universal_npk_ranks,fetch_api_data,get_weather_daily
+from functions import get_universal_npk_ranks,fetch_api_data,get_weather_with_location
 import os,json
 app = Flask(__name__)
 
@@ -14,7 +14,7 @@ app = Flask(__name__)
 # firebase_key = os.environ.get("FIREBASE_KEY")
 # firebase_dict = json.loads(firebase_key)
 # SECRET_KEY = os.environ.get("GROQ_API_KEY")
-SECRET_KEY="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"
+SECRET_KEY="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"  # groq key for chat bot
 
 firebase_dict = "./firebase-auth.json"
 cred = credentials.Certificate(firebase_dict)
@@ -66,12 +66,12 @@ def delete_data(id):
 def getNpkRank():
     data=fetch_api_data(16.60001638075996, 97.34907779784488)
     res=get_universal_npk_ranks(data)
-    return jsonify({"message":"Rank Got","response":res})
+    return jsonify({"message":"Rank Got","response":res,"datas":data})
 
 
 @app.route("/get7DaysWeather",methods=["GET"])
 def getWeather():
-    data=get_weather_daily(16.60001638075996, 97.34907779784488)
+    data=get_weather_with_location(16.830978800536716, 96.15757585188295)
     return jsonify({"message":"Weather Got","response":data})
 
 

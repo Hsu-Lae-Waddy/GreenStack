@@ -117,8 +117,6 @@ def get_advanced_npk_ranks(data):
 
     return {"N": n_rank, "P": p_rank, "K": k_rank}
 
-# Using your original data (Clay Loam Ferralsols)
-# print(get_advanced_npk_ranks(data))
 
 def fetch_api_data(lat,lon):
     api=f"https://www.kaegro.com/farms/api/soil?lat={lat}&lon={lon}"
@@ -136,46 +134,94 @@ def fetch_api_data(lat,lon):
         print(f"Request error occurred: {req_err}")
     return None
 
+# for production ####
+# import os
+# GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY")  # set your API key in env
 
 
-def get_weather_daily(lat, lon):
-    url = "https://api.open-meteo.com/v1/forecast"
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "daily": "temperature_2m_max,temperature_2m_min,uv_index_max,windspeed_10m_max,winddirection_10m_dominant,precipitation_sum",
-        "hourly": "relativehumidity_2m,surface_pressure",
-        "timezone": "Asia/Yangon"
-    }
+def get_weather_with_location(lat, lon):
+    # =========================
+    # 1️⃣ Weather API (Open-Meteo)
+    # =========================
+    weather_url = "https://api.open-meteo.com/v1/forecast"
+    weather_params = {
+    "latitude": lat,
+    "longitude": lon,
+    "daily": "temperature_2m_max,temperature_2m_min,uv_index_max,windspeed_10m_max,winddirection_10m_dominant,precipitation_sum",
+    "hourly": "temperature_2m,relativehumidity_2m,surface_pressure",
+    "current_weather": True,
+    "timezone": "Asia/Yangon"
+}
 
-    res = requests.get(url, params=params, timeout=10)
-    res.raise_for_status()
-    data = res.json()
+    try:
+        weather_res = requests.get(weather_url, params=weather_params, timeout=10)
+        weather_res.raise_for_status()
+        weather_data = weather_res.json()
+    except Exception as e:
+        return {"error": f"Weather API failed: {str(e)}"}
 
+    # =========================
+    # 2️⃣ Location API (LocationIQ) - FIXED LOGIC
+    # =========================
+    location = {"city": None, "region": None, "country": None}
+
+    try:
+        geo_url = "https://us1.locationiq.com/v1/reverse"
+        geo_params = {
+            "key": "pk.fe83c8dae3bb3224baa12eb6f4174eb6",
+            "lat": lat,
+            "lon": lon,
+            "format": "json",
+        }
+
+        geo_res = requests.get(geo_url, params=geo_params, timeout=5)
+        geo_res.raise_for_status()
+        geo_data = geo_res.json()
+
+        # LocationIQ returns a flat 'address' dictionary
+        addr = geo_data.get("address", {})
+        location = {
+            "city": addr.get("city") or addr.get("town") or addr.get("village") or addr.get("hamlet"),
+            "region": addr.get("state") or addr.get("region"),
+            "country": addr.get("country")
+        }
+
+    except Exception as e:
+        print(f"LocationIQ Geocoding error: {e}")
+
+    # =========================
+    # 3️⃣ Process Daily Data (Optimized)
+    # =========================
     forecast = []
+    hourly_times = weather_data["hourly"]["time"]
+    hourly_humidity = weather_data["hourly"]["relativehumidity_2m"]
+    hourly_pressure = weather_data["hourly"]["surface_pressure"]
 
-    for i, date in enumerate(data["daily"]["time"]):
-        humidity = []
-        pressure = []
-
-        for j, t in enumerate(data["hourly"]["time"]):
-            if t.startswith(date):
-                humidity.append(data["hourly"]["relativehumidity_2m"][j])
-                pressure.append(data["hourly"]["surface_pressure"][j])
+    for i, date in enumerate(weather_data["daily"]["time"]):
+        # Filter hourly data for the specific day using list comprehension
+        day_indices = [j for j, t in enumerate(hourly_times) if t.startswith(date)]
+        
+        day_humidity = [hourly_humidity[j] for j in day_indices]
+        day_pressure = [hourly_pressure[j] for j in day_indices]
 
         forecast.append({
             "date": date,
-            "temp_max": data["daily"]["temperature_2m_max"][i],
-            "temp_min": data["daily"]["temperature_2m_min"][i],
-            "humidity": round(sum(humidity)/len(humidity), 1) if humidity else None,
-            "pressure": round(sum(pressure)/len(pressure), 1) if pressure else None,
-            "wind_speed": data["daily"]["windspeed_10m_max"][i],
-            "wind_direction": data["daily"]["winddirection_10m_dominant"][i],
-            "uv_index": data["daily"]["uv_index_max"][i],
-            "rainfall": data["daily"]["precipitation_sum"][i]
+            "temp_max": weather_data["daily"]["temperature_2m_max"][i],
+            "temp_min": weather_data["daily"]["temperature_2m_min"][i],
+            "temp": weather_data["hourly"]["temperature_2m"][i],
+            "humidity": round(sum(day_humidity)/len(day_humidity), 1) if day_humidity else None,
+            "pressure": round(sum(day_pressure)/len(day_pressure), 1) if day_pressure else None,
+            "wind_speed": weather_data["daily"]["windspeed_10m_max"][i],
+            "wind_direction": weather_data["daily"]["winddirection_10m_dominant"][i],
+            "uv_index": weather_data["daily"]["uv_index_max"][i],
+            "rainfall": weather_data["daily"]["precipitation_sum"][i]
         })
 
+    # =========================
+    # 4️⃣ Final Response
+    # =========================
     return {
+        "location": location,
         "units": {
             "temperature": "°C",
             "humidity": "%",
@@ -187,3 +233,4 @@ def get_weather_daily(lat, lon):
         },
         "forecast": forecast
     }
+
