@@ -18,8 +18,13 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import MobileNavbar from "../components/MobileNavbar";
+import translations from './translations';
 
 const HomePage = () => {
+  // Set default language to 'mm' (Myanmar)
+  const [lang, setLang] = useState('mm');
+  // Shortcut to access current language strings
+  const t = translations[lang];
   const weeklyForecast = [
     { day: "Today", temp: "31", icon: <Sun className="text-[#A3C475]" /> },
     { day: "Mon", temp: "29", icon: <CloudRain className="text-blue-300" /> },
@@ -181,11 +186,12 @@ const HomePage = () => {
 
       {/* feedback */}
       <section className="px-5 py-6 md:px-20 max-w-7xl mx-auto">
-        <div className="bg-[#A3C475] rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 text-white shadow-xl flex justify-center items-center">
-          <div className="w-full md:w-1/2 text-center">
-            <h2 className="text-xl md:text-5xl font-black leading-tight mb-3 md:mb-6">
-              Give Feedback
-            </h2>
+    <div className="bg-[#A3C475] rounded-[2rem] md:rounded-[3rem] p-6 md:p-16 text-white shadow-xl flex justify-center items-center">
+
+      <div className="w-full md:w-1/2 text-center">
+        <h2 className="text-xl md:text-5xl font-black leading-tight mb-3 md:mb-6">
+          Give Feedback
+        </h2>
 
             <p className="text-xs md:text-lg font-medium mb-4 md:mb-8 text-[#3F865F]">
               Share your ideas, problems, or suggestions to improve Smart
