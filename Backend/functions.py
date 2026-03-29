@@ -67,3 +67,7 @@ data ={
 }
 
 print(calculate_npk_rank(data))
+
+
+def evaluate_trend(current_price, past_price):
+    pass

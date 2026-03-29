@@ -25,6 +25,7 @@ firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 collection = db.collection("users")
+post_collection = db.collection("posts")
 
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -165,7 +166,39 @@ def predict():
 # Marketplace route
 @app.route("/marketplace", methods=["GET"])
 def marketplace():
-    
+    role = request.args.get("role", "").lower() 
+    crop_filter = request.args.get("crop")
+
+    # Fetch posts
+    posts_ref = post_collection
+
+    # Apply optional filters
+    if crop_filter:
+        posts_ref = posts_ref.where("crop_name", "==", crop_filter)
+
+    posts_docs = posts_ref.stream()
+    posts_list = []
+
+    for doc in posts_docs:
+        post_data = doc.to_dict()
+        # Include broker info
+        broker_doc = collection.document(post_data["broker_id"]).get()
+        if broker_doc.exists:
+            post_data["broker"] = broker_doc.to_dict()
+        # Default values if some fields missing
+        post_data["crop_name"] = post_data.get("crop_name", "")
+        post_data["category"] = post_data.get("category", "All")
+        post_data["description"] = post_data.get("description", "")
+        post_data["price"] = post_data.get("price", "")
+        post_data["unit"] = post_data.get("unit", "")
+        post_data["trend"] = post_data.get("trend", "steady")
+        post_data["location"] = post_data.get("location", "")
+        post_data["id"] = doc.id
+        posts_list.append(post_data)
+
+    return jsonify(posts_list)
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
