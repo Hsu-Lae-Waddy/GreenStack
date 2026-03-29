@@ -152,4 +152,5 @@ const NavIcon = ({ icon, active = false }) => (
   </button>
 );
 
+
 export default MarketPrice;
