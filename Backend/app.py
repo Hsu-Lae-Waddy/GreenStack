@@ -69,7 +69,7 @@ def delete_data(id):
     return jsonify({"message": "Deleted"})
 
 # Signup
-@app.route("/signup", methods=["POST"])j 
+@app.route("/signup", methods=["POST"])
 def signup():
     data = request.json
     username = data.get("username")
@@ -162,8 +162,10 @@ def predict():
     
     return jsonify({"crop": prediction[0]})
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# Marketplace route
+@app.route("/marketplace", methods=["GET"])
+def marketplace():
+    
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080)
