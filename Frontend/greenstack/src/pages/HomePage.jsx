@@ -1,19 +1,13 @@
-<<<<<<< HEAD
+
 import React,{useState} from "react";
 import MarketPrice from "./MarketPrice";
-=======
-import React, {useState} from "react";
->>>>>>> 3236e9c (mmsub_2)
+
 import {
   Droplets,
   Wind,
   Sun,
   MapPin,
-  ChevronRight,
-  Sprout,
-  Mail,
-  Phone,
-  Heart,
+
   CloudRain,
   Thermometer,
   CircleGauge,
