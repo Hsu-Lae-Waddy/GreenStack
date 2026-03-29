@@ -3,6 +3,8 @@ import {
   Droplets, Wind, Sun, User, MapPin, ChevronRight,
   Bookmark, Sprout, Bot, LayoutList, Mail, Phone, Heart
 } from 'lucide-react';
+import Navbar from '../components/Navbar'
+import MobileNavbar from '../components/MobileNavbar'
 
 const HomePage = () => {
   return (
@@ -10,25 +12,7 @@ const HomePage = () => {
     <div className="min-h-screen bg-[#FDFEFA] font-sans pb-40 md:pb-0">
 
       {/* 1. DESKTOP NAVBAR */}
-      <nav className="hidden md:flex sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-12 py-4 justify-between items-center shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="bg-[#3F865F] p-2 rounded-xl rotate-3">
-            <Sprout className="text-[#A3C475]" size={24} />
-          </div>
-          <span className="text-xl font-black text-[#3F865F] tracking-tight">GreenStack</span>
-        </div>
-        <div className="flex gap-10 font-bold text-sm uppercase tracking-widest text-[#3F865F]/60">
-          <a href="#" className="hover:text-[#3F865F] transition-colors">Market Price</a>
-          <a href="#" className="hover:text-[#3F865F] transition-colors">Crop Tips</a>
-          <a href="#" className="hover:text-[#3F865F] transition-colors">Feedback</a>
-        </div>
-        <div className="flex items-center gap-4">
-            <button className="p-2 bg-[#A3C475]/20 rounded-full text-[#3F865F] hover:scale-110 transition-transform"><Bot size={22}/></button>
-            <button className="flex items-center gap-2 bg-[#C5A677] text-white px-6 py-2.5 rounded-full font-bold shadow-lg shadow-[#C5A677]/30">
-                <User size={18}/> Profile
-            </button>
-        </div>
-      </nav>
+      <Navbar name='Home'/>
 
       {/* 2. WEATHER SECTION */}
       <section className="px-5 pt-8 md:px-20 md:pt-12 max-w-7xl mx-auto">
@@ -134,22 +118,7 @@ const HomePage = () => {
       </footer>
 
       {/* 5. MOBILE FLOATING NOTCH NAVBAR (Fixed Bottom) */}
-      <div className="md:hidden fixed bottom-0 left-0 w-full px-4 pb-4 z-50">
-        <div className="relative bg-white h-20 rounded-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.12)] flex items-center justify-around px-2 border border-gray-100">
-            <NavIcon icon={<LayoutList />} active />
-            <NavIcon icon={<Sprout />} />
-            <div className="absolute -top-10 left-1/2 -translate-x-1/2">
-                <div className="w-20 h-20 bg-[#FDFEFA] rounded-full flex items-center justify-center">
-                    <button className="w-16 h-16 bg-[#3F865F] rounded-full flex items-center justify-center text-white shadow-xl shadow-[#3F865F]/40 border-4 border-white active:scale-90 transition-transform">
-                        <Bot size={32} />
-                    </button>
-                </div>
-            </div>
-            <div className="w-16 h-1"></div>
-            <NavIcon icon={<Bookmark />} />
-            <NavIcon icon={<User />} />
-        </div>
-      </div>
+      <MobileNavbar/>
     </div>
   );
 };
